@@ -332,7 +332,7 @@
       const mainContent = document.getElementById('mainContent');
       const loginError = document.getElementById('loginError');
 
-      if (username === 'AN' && password === '1234') {
+      if (username === 'Avadhi-Nidhi' && password === '147456') {
         loginScreen.style.display = 'none';
         mainContent.classList.remove('hidden');
         loginError.classList.add('hidden');
@@ -356,19 +356,11 @@
     function loadPaymentTable() {
       fetch('payments.csv')
         .then(response => {
-          if (!response.ok) {
-            throw new Error(`Failed to load payments.csv: ${response.status} ${response.statusText}`);
-          }
+          if (!response.ok) throw new Error('Failed to load payments.csv');
           return response.text();
         })
         .then(data => {
-          if (!data.trim()) {
-            throw new Error('payments.csv is empty');
-          }
           const rows = data.trim().split('\n').map(row => row.split(','));
-          if (rows.length < 2) {
-            throw new Error('payments.csv has insufficient data');
-          }
           const headers = rows[0];
           const tableData = rows.slice(1);
 
@@ -425,12 +417,11 @@
 
           table.appendChild(thead);
           table.appendChild(tbody);
-          document.getElementById('paymentTable').innerHTML = '';
           document.getElementById('paymentTable').appendChild(table);
         })
         .catch(error => {
-          console.error('Error loading payment table:', error.message);
-          document.getElementById('paymentTable').innerHTML = `<p>Error loading payment details: ${error.message}. Please check if payments.csv exists and is correctly formatted.</p>`;
+          console.error('Error loading CSV:', error);
+          document.getElementById('paymentTable').innerHTML = '<p>Error loading payment details. Please try again later.</p>';
         });
     }
 
@@ -552,7 +543,7 @@
       doc.setFont('helvetica', 'bold');
       doc.text('Summary:', 20, yOffset);
       yOffset += 8;
-      doc.setFont('helvetica, 'normal');
+      doc.setFont('helvetica', 'normal');
       const summaryLines = doc.splitTextToSize(summary, 170);
       doc.text(summaryLines, 20, yOffset);
       yOffset += summaryLines.length * 6 + 12;
