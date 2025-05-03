@@ -326,18 +326,26 @@
   <script>
     // Authentication
     function login() {
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
-      const loginScreen = document.getElementById('loginScreen');
-      const mainContent = document.getElementById('mainContent');
-      const loginError = document.getElementById('loginError');
+      try {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const loginScreen = document.getElementById('loginScreen');
+        const mainContent = document.getElementById('mainContent');
+        const loginError = document.getElementById('loginError');
 
-      if (username === 'AN' && password === '1234') {
-        loginScreen.style.display = 'none';
-        mainContent.classList.remove('hidden');
-        loginError.classList.add('hidden');
-      } else {
-        loginError.classList.remove('hidden');
+        if (username === 'AN' && password === '1234') {
+          loginScreen.style.display = 'none';
+          mainContent.style.display = 'block';
+          mainContent.classList.remove('hidden');
+          loginError.classList.add('hidden');
+          loadPaymentTable(); // Ensure table loads after login
+        } else {
+          loginError.classList.remove('hidden');
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        document.getElementById('loginError').textContent = 'An error occurred. Please try again.';
+        document.getElementById('loginError').classList.remove('hidden');
       }
     }
 
@@ -552,7 +560,7 @@
       doc.setFont('helvetica', 'bold');
       doc.text('Summary:', 20, yOffset);
       yOffset += 8;
-      doc.setFont('helvetica, 'normal');
+      doc.setFont('helvetica', 'normal');
       const summaryLines = doc.splitTextToSize(summary, 170);
       doc.text(summaryLines, 20, yOffset);
       yOffset += summaryLines.length * 6 + 12;
@@ -623,9 +631,6 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      // Load payment table
-      loadPaymentTable();
-
       // Initialize form elements
       const repayStart = document.getElementById('repayStart');
       const repayEnd = document.getElementById('repayEnd');
