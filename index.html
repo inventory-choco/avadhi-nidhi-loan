@@ -7,14 +7,16 @@
   <style>
     :root {
       --primary: #0066cc;
+      --secondary: #00a8b5;
       --light: #f4f8fc;
       --accent: #eef4ff;
       --border: #d6e2f1;
       --shadow: rgba(0, 0, 0, 0.1);
       --radius: 8px;
-      --error: #ffcccc;
+      --error: #ff4d4d;
+      --error-bg: #ffe6e6;
       --bg: #ffffff;
-      --text: #000000;
+      --text: #1a1a1a;
     }
 
     body {
@@ -22,7 +24,7 @@
       background-color: var(--bg);
       color: var(--text);
       margin: 0;
-      padding: 20px;
+      padding: 0;
       -webkit-text-size-adjust: 100%;
     }
 
@@ -33,36 +35,41 @@
       --accent: #2a2a2a;
       --border: #444;
       --shadow: rgba(255, 255, 255, 0.05);
+      --error-bg: #4d1a1a;
+    }
+
+    .header {
+      position: sticky;
+      top: 0;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 5px var(--shadow);
+      z-index: 500;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 600;
     }
 
     .container {
       max-width: 1200px;
-      margin: auto;
+      margin: 20px auto;
       background: var(--light);
       padding: 20px;
       border-radius: var(--radius);
       box-shadow: 0 5px 20px var(--shadow);
+      animation: fadeIn 0.5s ease-in;
     }
 
-    h1 {
-      text-align: center;
-      color: var(--primary);
-    }
-
-    #loanButton {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: var(--radius);
-      font-weight: bold;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      text-decoration: none;
-      display: inline-block;
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     #paymentTable {
@@ -79,13 +86,13 @@
 
     th, td {
       border: 1px solid var(--border);
-      padding: 8px;
+      padding: 10px;
       text-align: left;
     }
 
     th {
       background-color: var(--accent);
-      font-weight: bold;
+      font-weight: 600;
     }
 
     tr:nth-child(even) {
@@ -97,15 +104,61 @@
       background-color: #fff9db;
     }
 
-    button {
+    tr:hover {
+      background-color: var(--accent);
+      transition: background-color 0.2s;
+    }
+
+    .summary-card {
+      background: var(--accent);
+      border-left: 4px solid var(--secondary);
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: var(--radius);
+      box-shadow: 0 2px 10px var(--shadow);
+      animation: fadeIn 0.5s ease-in;
+    }
+
+    .summary-card h3 {
+      margin: 0 0 10px;
+      color: var(--primary);
+      font-size: 1.2rem;
+    }
+
+    .summary-card p {
+      margin: 5px 0;
+      font-size: 0.95rem;
+    }
+
+    .summary-card .metric {
+      font-weight: bold;
+      color: var(--text);
+    }
+
+    .button {
       background: var(--primary);
       color: white;
       border: none;
-      padding: 12px;
+      padding: 12px 20px;
       border-radius: var(--radius);
       font-weight: bold;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
+      text-decoration: none;
+      display: inline-block;
+      transition: background 0.2s;
+    }
+
+    .button:hover {
+      background: var(--secondary);
+    }
+
+    .button.secondary {
+      background: var(--secondary);
+    }
+
+    .button.secondary:hover {
+      background: var(--primary);
     }
 
     .hidden {
@@ -113,9 +166,25 @@
     }
 
     .error-message {
-      color: red;
+      color: var(--error);
       font-size: 12px;
       margin-top: 4px;
+    }
+
+    .error-box {
+      background: var(--error-bg);
+      border: 1px solid var(--error);
+      padding: 10px;
+      border-radius: var(--radius);
+      color: var(--error);
+      margin-bottom: 20px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: var(--text);
+      font-style: italic;
     }
 
     #loginScreen {
@@ -138,11 +207,12 @@
       text-align: center;
       max-width: 300px;
       width: 90%;
+      box-shadow: 0 5px 20px var(--shadow);
     }
 
     .login-box input {
       width: 100%;
-      padding: 8px;
+      padding: 10px;
       margin: 10px 0;
       border: 1px solid var(--border);
       border-radius: var(--radius);
@@ -156,10 +226,26 @@
       width: 100%;
     }
 
+    .button-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      justify-content: center;
+    }
+
     /* Mobile-friendly styles */
     @media only screen and (max-width: 600px) {
       .container {
         padding: 15px;
+        margin: 10px;
+      }
+
+      .header {
+        padding: 10px 15px;
+      }
+
+      .header h1 {
+        font-size: 1.2rem;
       }
 
       table {
@@ -167,17 +253,24 @@
       }
 
       th, td {
-        padding: 6px;
+        padding: 8px;
       }
 
-      button, #loanButton {
+      .button {
         padding: 10px;
         font-size: 14px;
       }
 
-      #loanButton {
-        top: 10px;
-        right: 10px;
+      .summary-card {
+        padding: 10px;
+      }
+
+      .summary-card h3 {
+        font-size: 1rem;
+      }
+
+      .summary-card p {
+        font-size: 0.9rem;
       }
     }
 
@@ -188,7 +281,7 @@
         -webkit-appearance: none;
       }
 
-      button, #loanButton {
+      .button {
         -webkit-tap-highlight-color: transparent;
         touch-action: manipulation;
       }
@@ -201,16 +294,30 @@
       <h2>Login</h2>
       <input type="text" id="username" placeholder="Username" required>
       <input type="password" id="password" placeholder="Password" required>
-      <button onclick="login()">Login</button>
+      <button class="button" onclick="login()">Login</button>
       <p id="loginError" class="error-message hidden">Invalid username or password</p>
     </div>
   </div>
 
-  <div class="container hidden" id="mainContent">
+  <div class="header hidden" id="mainHeader">
     <h1>Avadhi Nidhi Payment Details</h1>
-    <a id="loanButton" href="LoanRequest.html">Request for a Loan</a>
-    <div id="paymentTable"></div>
-    <button id="darkToggle">Toggle Dark Mode</button>
+    <a class="button" href="LoanRequest.html">Request for a Loan</a>
+  </div>
+
+  <div class="container hidden" id="mainContent">
+    <div id="paymentSummary" class="summary-card">
+      <h3>Payment Summary</h3>
+      <p><span class="metric">Total Members:</span> <span id="totalMembers">0</span></p>
+      <p><span class="metric">Total Paid:</span> AED <span id="totalPaid">0</span></p>
+      <p><span class="metric">Total Outstanding:</span> AED <span id="totalOB">0</span></p>
+      <p><span class="metric">Latest Month:</span> <span id="latestMonth">-</span></p>
+      <p><span class="metric">Latest Month Paid:</span> AED <span id="latestMonthPaid">0</span></p>
+    </div>
+    <div id="paymentTable" class="loading">Loading payment details...</div>
+    <div class="button-row">
+      <button class="button" id="darkToggle">Toggle Dark Mode</button>
+      <button class="button secondary" onclick="logout()">Logout</button>
+    </div>
   </div>
 
   <script>
@@ -221,12 +328,15 @@
         const password = document.getElementById('password').value;
         const loginScreen = document.getElementById('loginScreen');
         const mainContent = document.getElementById('mainContent');
+        const mainHeader = document.getElementById('mainHeader');
         const loginError = document.getElementById('loginError');
 
         if (username === 'AN' && password === '1234') {
           loginScreen.style.display = 'none';
           mainContent.style.display = 'block';
+          mainHeader.style.display = 'flex';
           mainContent.classList.remove('hidden');
+          mainHeader.classList.remove('hidden');
           loginError.classList.add('hidden');
           loadPaymentTable();
         } else {
@@ -239,8 +349,30 @@
       }
     }
 
-    // Load payment table with totals
+    // Logout
+    function logout() {
+      try {
+        const loginScreen = document.getElementById('loginScreen');
+        const mainContent = document.getElementById('mainContent');
+        const mainHeader = document.getElementById('mainHeader');
+        loginScreen.style.display = 'flex';
+        mainContent.style.display = 'none';
+        mainHeader.style.display = 'none';
+        mainContent.classList.add('hidden');
+        mainHeader.classList.add('hidden');
+        document.getElementById('username').value = '';
+        document.getElementById('password').value = '';
+        document.getElementById('loginError').classList.add('hidden');
+      } catch (error) {
+        console.error('Logout error:', error);
+      }
+    }
+
+    // Load payment table and summary
     function loadPaymentTable() {
+      const paymentTable = document.getElementById('paymentTable');
+      paymentTable.innerHTML = '<div class="loading">Loading payment details...</div>';
+
       fetch('payments.csv')
         .then(response => {
           if (!response.ok) {
@@ -259,7 +391,7 @@
           const headers = rows[0];
           const tableData = rows.slice(1);
 
-          // Calculate totals for numeric columns (Total Paid, OB, Mar-2025, etc.)
+          // Calculate totals and summary metrics
           const totals = new Array(headers.length).fill(0);
           tableData.forEach(row => {
             row.forEach((cell, i) => {
@@ -268,6 +400,13 @@
               }
             });
           });
+
+          // Update summary
+          document.getElementById('totalMembers').textContent = tableData.length;
+          document.getElementById('totalPaid').textContent = totals[2].toFixed(0); // Total Paid
+          document.getElementById('totalOB').textContent = totals[3].toFixed(0); // OB
+          document.getElementById('latestMonth').textContent = headers[headers.length - 1]; // Last month
+          document.getElementById('latestMonthPaid').textContent = totals[headers.length - 1].toFixed(0); // Last month total
 
           // Create table
           const table = document.createElement('table');
@@ -312,12 +451,12 @@
 
           table.appendChild(thead);
           table.appendChild(tbody);
-          document.getElementById('paymentTable').innerHTML = '';
-          document.getElementById('paymentTable').appendChild(table);
+          paymentTable.innerHTML = '';
+          paymentTable.appendChild(table);
         })
         .catch(error => {
           console.error('Error loading payment table:', error.message);
-          document.getElementById('paymentTable').innerHTML = `<p>Error loading payment details: ${error.message}. Please check if payments.csv exists and is correctly formatted.</p>`;
+          paymentTable.innerHTML = `<div class="error-box">Error loading payment details: ${error.message}. Please check if payments.csv exists and is correctly formatted.</div>`;
         });
     }
 
