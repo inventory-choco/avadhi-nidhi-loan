@@ -397,10 +397,10 @@
           const headers = rows[0];
           const tableData = rows.slice(1);
 
-          // Calculate Total Paid (sum of monthly payments)
+          // Calculate Total Paid (OB + monthly payments)
           tableData.forEach(row => {
-            let totalPaid = 0;
-            for (let i = 4; i < row.length; i++) { // Start from Mar-2025 (index 4)
+            let totalPaid = parseFloat(row[3]) || 0; // OB at index 3
+            for (let i = 4; i < row.length; i++) { // Monthly payments from Mar-2025 (index 4)
               totalPaid += parseFloat(row[i]) || 0;
             }
             row[2] = totalPaid.toFixed(0); // Insert Total Paid at index 2
@@ -432,7 +432,7 @@
 
           // Update summary
           document.getElementById('totalMembers').textContent = tableData.length;
-          document.getElementById('totalReceived').textContent = totals[2].toFixed(0); // Total Paid
+          document.getElementById('totalReceived').textContent = totals[2].toFixed(0); // Sum of Total Paid
           document.getElementById('currentMonth').textContent = formattedMonth;
           document.getElementById('currentMonthReceived').textContent = totals[currentMonthIndex].toFixed(0);
           document.getElementById('currentMonthOutstanding').textContent = currentMonthOutstanding.toFixed(0);
