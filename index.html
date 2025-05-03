@@ -15,6 +15,7 @@
       --radius: 8px;
       --error: #ff4d4d;
       --error-bg: #ffe6e6;
+      --highlight: #ffcccc;
       --bg: #ffffff;
       --text: #1a1a1a;
     }
@@ -36,6 +37,7 @@
       --border: #444;
       --shadow: rgba(255, 255, 255, 0.05);
       --error-bg: #4d1a1a;
+      --highlight: #660000;
     }
 
     .header {
@@ -102,6 +104,10 @@
     tr.total-row {
       font-weight: bold;
       background-color: #fff9db;
+    }
+
+    tr.non-paying {
+      background-color: var(--highlight);
     }
 
     tr:hover {
@@ -308,10 +314,10 @@
     <div id="paymentSummary" class="summary-card">
       <h3>Payment Summary</h3>
       <p><span class="metric">Total Members:</span> <span id="totalMembers">0</span></p>
-      <p><span class="metric">Total Paid:</span> AED <span id="totalPaid">0</span></p>
-      <p><span class="metric">Total Outstanding:</span> AED <span id="totalOB">0</span></p>
-      <p><span class="metric">Latest Month:</span> <span id="latestMonth">-</span></p>
-      <p><span class="metric">Latest Month Paid:</span> AED <span id="latestMonthPaid">0</span></p>
+      <p><span class="metric">Total Received:</span> AED <span id="totalReceived">0</span></p>
+      <p><span class="metric">Current Month:</span> <span id="currentMonth">-</span></p>
+      <p><span class="metric">Current Month Total Received:</span> AED <span id="currentMonthReceived">0</span></p>
+      <p><span class="metric">Current Month Total Outstanding:</span> AED <span id="currentMonthOutstanding">0</span></p>
     </div>
     <div id="paymentTable" class="loading">Loading payment details...</div>
     <div class="button-row">
@@ -391,22 +397,45 @@
           const headers = rows[0];
           const tableData = rows.slice(1);
 
-          // Calculate totals and summary metrics
+          // Calculate Total Paid (sum of monthly payments)
+          tableData.forEach(row => {
+            let totalPaid = 0;
+            for (let i = 4; i < row.length; i++) { // Start from Mar-2025 (index 4)
+              totalPaid += parseFloat(row[i]) || 0;
+            }
+            row[2] = totalPaid.toFixed(0); // Insert Total Paid at index 2
+          });
+
+          // Calculate totals for numeric columns (Total Paid, OB, monthly columns)
           const totals = new Array(headers.length).fill(0);
+          let currentMonthOutstanding = 0;
+          const currentMonthIndex = headers.length - 1; // Last column (e.g., May-2025)
+
           tableData.forEach(row => {
             row.forEach((cell, i) => {
               if (i >= 2 && cell) { // Start from Total Paid (index 2)
                 totals[i] += parseFloat(cell) || 0;
               }
             });
+            // Calculate outstanding for current month (100 - payment)
+            const currentMonthPayment = parseFloat(row[currentMonthIndex]) || 0;
+            if (currentMonthPayment < 100) {
+              currentMonthOutstanding += (100 - currentMonthPayment);
+            }
           });
+
+          // Format current month (MMM-YYYY)
+          const lastHeader = headers[currentMonthIndex];
+          const date = new Date(lastHeader + '-01');
+          const monthFormatter = new Intl.DateTimeFormat('en', { month: 'short', year: 'numeric' });
+          const formattedMonth = monthFormatter.format(date);
 
           // Update summary
           document.getElementById('totalMembers').textContent = tableData.length;
-          document.getElementById('totalPaid').textContent = totals[2].toFixed(0); // Total Paid
-          document.getElementById('totalOB').textContent = totals[3].toFixed(0); // OB
-          document.getElementById('latestMonth').textContent = headers[headers.length - 1]; // Last month
-          document.getElementById('latestMonthPaid').textContent = totals[headers.length - 1].toFixed(0); // Last month total
+          document.getElementById('totalReceived').textContent = totals[2].toFixed(0); // Total Paid
+          document.getElementById('currentMonth').textContent = formattedMonth;
+          document.getElementById('currentMonthReceived').textContent = totals[currentMonthIndex].toFixed(0);
+          document.getElementById('currentMonthOutstanding').textContent = currentMonthOutstanding.toFixed(0);
 
           // Create table
           const table = document.createElement('table');
@@ -425,6 +454,10 @@
           // Add data rows
           tableData.forEach(row => {
             const tr = document.createElement('tr');
+            const currentMonthPayment = parseFloat(row[currentMonthIndex]) || 0;
+            if (currentMonthPayment < 100) {
+              tr.classList.add('non-paying');
+            }
             row.forEach(cell => {
               const td = document.createElement('td');
               td.textContent = cell || '-';
