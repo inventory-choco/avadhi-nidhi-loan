@@ -3,19 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Avadhi Nidhi - Loan Request</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <title>Avadhi Nidhi - Loan Details</title>
   <style>
     :root {
       --primary: #0066cc;
+      --secondary: #00a8b5;
       --light: #f4f8fc;
       --accent: #eef4ff;
       --border: #d6e2f1;
       --shadow: rgba(0, 0, 0, 0.1);
       --radius: 8px;
-      --error: #ffcccc;
+      --error: #ff4d4d;
+      --error-bg: #ffe6e6;
+      --highlight: #ffcccc;
       --bg: #ffffff;
-      --text: #000000;
+      --text: #1a1a1a;
     }
 
     body {
@@ -23,7 +25,7 @@
       background-color: var(--bg);
       color: var(--text);
       margin: 0;
-      padding: 20px;
+      padding: 0;
       -webkit-text-size-adjust: 100%;
     }
 
@@ -34,110 +36,207 @@
       --accent: #2a2a2a;
       --border: #444;
       --shadow: rgba(255, 255, 255, 0.05);
+      --error-bg: #4d1a1a;
+      --highlight: #660000;
+    }
+
+    .header {
+      position: sticky;
+      top: 0;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 5px var(--shadow);
+      z-index: 500;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 600;
     }
 
     .container {
       max-width: 1200px;
-      margin: auto;
+      margin: 20px auto;
       background: var(--light);
       padding: 20px;
       border-radius: var(--radius);
       box-shadow: 0 5px 20px var(--shadow);
+      animation: fadeIn 0.5s ease-in;
     }
 
-    h1, h2 {
-      text-align: center;
-      color: var(--primary);
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    label {
+    #loanTable {
+      overflow-x: auto;
       display: block;
-      margin-top: 12px;
-      font-weight: 600;
-    }
-
-    input, select, textarea {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      font-size: 14px;
-      background-color: var(--bg);
-      color: var(--text);
-      box-sizing: border-box;
-      -webkit-appearance: none;
-    }
-
-    .input-row {
-      display: flex;
-      gap: 10px;
-    }
-
-    .readonly {
-      background: #e9f1fc;
-    }
-
-    .button-row {
-      display: flex;
-      gap: 10px;
       margin-top: 20px;
     }
 
-    button {
-      flex: 1;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px;
+      text-align: left;
+    }
+
+    th {
+      background-color: var(--accent);
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) {
+      background-color: var(--bg);
+    }
+
+    tr.total-row {
+      font-weight: bold;
+      background-color: #fff9db;
+    }
+
+    tr.non-paying {
+      background-color: var(--highlight);
+    }
+
+    tr:hover {
+      background-color: var(--accent);
+      transition: background-color 0.2s;
+    }
+
+    .button {
       background: var(--primary);
       color: white;
       border: none;
-      padding: 12px;
+      padding: 12px 20px;
       border-radius: var(--radius);
       font-weight: bold;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
+      text-decoration: none;
+      display: inline-block;
+      transition: background 0.2s;
+    }
+
+    .button:hover {
+      background: var(--secondary);
+    }
+
+    .button.secondary {
+      background: var(--secondary);
+    }
+
+    .button.secondary:hover {
+      background: var(--primary);
     }
 
     .hidden {
       display: none !important;
     }
 
-    .summary {
-      background: #fff9db;
-      border-left: 4px solid #f1c40f;
-      padding: 12px;
-      margin-top: 20px;
-      font-size: 0.95rem;
-      border-radius: var(--radius);
-    }
-
-    canvas {
-      border: 1px solid var(--border);
-      background-color: #fff;
-      border-radius: var(--radius);
-      margin-top: 10px;
-      touch-action: none;
-      display: block;
-      width: 100%;
-      max-width: 300px;
-      height: 150px;
-    }
-
-    .error {
-      border-color: red;
-      background-color: var(--error);
-    }
-
     .error-message {
-      color: red;
+      color: var(--error);
       font-size: 12px;
       margin-top: 4px;
+    }
+
+    .error-box {
+      background: var(--error-bg);
+      border: 1px solid var(--error);
+      padding: 10px;
+      border-radius: var(--radius);
+      color: var(--error);
+      margin-bottom: 20px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: var(--text);
+      font-style: italic;
+    }
+
+    #loginScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .login-box {
+      background: var(--light);
+      padding: 20px;
+      border-radius: var(--radius);
+      text-align: center;
+      max-width: 300px;
+      width: 90%;
+      box-shadow: 0 5px 20px var(--shadow);
+    }
+
+    .login-box input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 14px;
+      background-color: var(--bg);
+      color: var(--text);
+      box-sizing: border-box;
+    }
+
+    .login-box button {
+      width: 100%;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      justify-content: center;
     }
 
     /* Mobile-friendly styles */
     @media only screen and (max-width: 600px) {
       .container {
         padding: 15px;
+        margin: 10px;
       }
 
-      button {
+      .header {
+        padding: 10px 15px;
+      }
+
+      .header h1 {
+        font-size: 1.2rem;
+      }
+
+      table {
+        font-size: 12px;
+      }
+
+      th, td {
+        padding: 8px;
+      }
+
+      .button {
         padding: 10px;
         font-size: 14px;
       }
@@ -145,480 +244,236 @@
 
     /* iOS-specific fixes */
     @media only screen and (-webkit-min-device-pixel-ratio: 2) {
-      input, select, textarea {
+      input {
         font-size: 16px;
         -webkit-appearance: none;
       }
 
-      button {
+      .button {
         -webkit-tap-highlight-color: transparent;
         touch-action: manipulation;
-      }
-
-      canvas {
-        -webkit-user-select: none;
-        user-select: none;
       }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Avadhi Nidhi</h1>
-    <form id="loanForm">
-      <h2>Loan Request Form</h2>
-      <label>Request Date:</label>
-      <input type="text" id="requestDate" class="readonly" readonly>
-      <label>Applicant Name:</label>
-      <input type="text" id="name" required>
-      <label>Contact Number UAE:</label>
-      <div class="input-row">
-        <input type="text" value="+971" readonly style="max-width: 70px;">
-        <input type="tel" id="contactUAE" inputmode="numeric" pattern="\d{9}" maxlength="9" required>
-      </div>
-      <label>Contact Number India (optional):</label>
-      <div class="input-row">
-        <input type="text" value="+91" readonly style="max-width: 70px;">
-        <input type="tel" id="contactIndia" inputmode="numeric" pattern="\d{10}" maxlength="10">
-      </div>
-      <label>Requesting Loan Amount (AED, Max 2000):</label>
-      <input type="number" id="amount" step="100" required>
-      <div id="amountError" class="error-message hidden">Maximum allowed amount is 2000</div>
-      <label>Loan Required By Date:</label>
-      <input type="date" id="loanDate" required>
-      <label>Reason for Loan Request:</label>
-      <select id="reason" required>
-        <option value="">-- Select --</option>
-        <option value="Annual Leave">Annual Leave</option>
-        <option value="Emergency Leave">Emergency Leave</option>
-        <option value="Other">Other</option>
-      </select>
-      <div id="otherReasonDiv" class="hidden">
-        <label>Please specify:</label>
-        <input type="text" id="otherReason">
-      </div>
-      <label>Will be Paid Back in How Many Months (Max 5):</label>
-      <input type="number" id="months" max="5" min="1" required>
-      <label>Loan Repayment Starting Date:</label>
-      <input type="date" id="repayStart" required>
-      <label>Loan Repayment End Date:</label>
-      <input type="date" id="repayEnd" required>
-      <div class="summary" id="summaryMessage"></div>
-      <label>Draw Signature:</label>
-      <canvas id="signatureCanvas"></canvas>
-      <button type="button" class="clear-signature-button" onclick="clearSignature()">Clear Signature</button>
-      <div class="button-row">
-        <button type="button" onclick="downloadPDF()">Download PDF</button>
-        <button type="button" onclick="shareOnWhatsApp()">Share on WhatsApp</button>
-        <button type="button" onclick="window.print()">Print</button>
-        <button type="reset">Clear Form</button>
-      </div>
-    </form>
-    <button id="darkToggle">Toggle Dark Mode</button>
-    <a href="index.html" style="display: block; text-align: center; margin-top: 20px; color: var(--primary);">Back to Main Page</a>
+  <div id="loginScreen">
+    <div class="login-box">
+      <h2>Login</h2>
+      <input type="text" id="username" placeholder="Username" required>
+      <input type="password" id="password" placeholder="Password" required>
+      <button class="button" onclick="login()">Login</button>
+      <p id="loginError" class="error-message hidden">Invalid username or password</p>
+    </div>
+  </div>
+
+  <div class="header hidden" id="mainHeader">
+    <h1>Avadhi Nidhi Loan Details</h1>
+    <a class="button" href="index.html">Back to Main Page</a>
+  </div>
+
+  <div class="container hidden" id="mainContent">
+    <div id="loanTable" class="loading">Loading loan details...</div>
+    <div class="button-row">
+      <button class="button" id="darkToggle">Toggle Dark Mode</button>
+      <button class="button secondary" onclick="logout()">Logout</button>
+    </div>
   </div>
 
   <script>
-    // Global variables for canvas
-    let signatureCanvas = null;
-    let ctx = null;
-    let drawing = false;
-    const { jsPDF } = window.jspdf;
-
-    // Canvas setup
-    function setCanvasSize() {
+    // Authentication
+    function login() {
       try {
-        const dpr = window.devicePixelRatio || 1;
-        const rect = signatureCanvas.getBoundingClientRect();
-        signatureCanvas.width = rect.width * dpr;
-        signatureCanvas.height = rect.height * dpr;
-        signatureCanvas.style.width = `${rect.width}px`;
-        signatureCanvas.style.height = `${rect.height}px`;
-        ctx.scale(dpr, dpr);
-        ctx.lineWidth = 2 / dpr;
-        ctx.lineCap = 'round';
-        ctx.strokeStyle = '#000';
-      } catch (e) {
-        console.error('Canvas setup failed:', e);
-      }
-    }
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const loginScreen = document.getElementById('loginScreen');
+        const mainContent = document.getElementById('mainContent');
+        const mainHeader = document.getElementById('mainHeader');
+        const loginError = document.getElementById('loginError');
 
-    // Clear signature
-    function clearSignature() {
-      try {
-        ctx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
-        setCanvasSize();
-      } catch (e) {
-        console.error('Clear signature error:', e);
-      }
-    }
-
-    // Generate PDF content
-    function generatePDFContent(doc, yOffset) {
-      const name = document.getElementById('name').value || 'N/A';
-      const requestDate = document.getElementById('requestDate').value || 'N/A';
-      const contactUAE = document.getElementById('contactUAE').value ? `+971${document.getElementById('contactUAE').value}` : 'N/A';
-      const contactIndia = document.getElementById('contactIndia').value ? `+91${document.getElementById('contactIndia').value}` : 'N/A';
-      const amount = document.getElementById('amount').value || 'N/A';
-      const loanDate = document.getElementById('loanDate').value || 'N/A';
-      const reason = document.getElementById('reason').value === 'Other' ? document.getElementById('otherReason').value : document.getElementById('reason').value || 'N/A';
-      const months = document.getElementById('months').value || 'N/A';
-      const repayStart = document.getElementById('repayStart').value || 'N/A';
-      const repayEnd = document.getElementById('repayEnd').value || 'N/A';
-      const summary = document.getElementById('summaryMessage').innerText || 'N/A';
-
-      doc.setFontSize(16);
-      doc.setTextColor(0, 102, 204);
-      doc.text('Avadhi Nidhi Loan Request', 105, yOffset, { align: 'center' });
-      yOffset += 10;
-
-      doc.setFontSize(12);
-      doc.setTextColor(0, 0, 0);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Request Date:', 20, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(requestDate, 80, yOffset);
-      yOffset += 8;
-
-      doc.setFont('helvetica', 'bold');
-      doc.text('Applicant Name:', 20, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(name, 80, yOffset);
-      yOffset += 8;
-
-      doc.setFont('helvetica', 'bold');
-      doc.text('Contact Number UAE:', 20, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(contactUAE, 80, yOffset);
-      yOffset += 8;
-
-      doc.setFont('helvetica', 'bold');
-      doc.text('Contact Number India:', 20, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(contactIndia, 80, yOffset);
-      yOffset += 8;
-
-      doc.setFont('helvetica', 'bold');
-      doc.text('Loan Amount (AED):', 20, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(amount, 80, yOffset);
-      yOffset += 8;
-
-      doc.setFont('helvetica', 'bold');
-      doc.text('Loan Required By:', 20, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(loanDate, 80, yOffset);
-      yOffset += 8;
-
-      doc.setFont('helvetica', 'bold');
-      doc.text('Reason for Loan:', 20, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(reason, 80, yOffset);
-      yOffset += 8;
-
-      doc.setFont('helvetica', 'bold');
-      doc.text('Repayment Months:', 20, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(months, 80, yOffset);
-      yOffset += 8;
-
-      doc.setFont('helvetica', 'bold');
-      doc.text('Repayment Start:', 20, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(repayStart, 80, yOffset);
-      yOffset += 8;
-
-      doc.setFont('helvetica', 'bold');
-      doc.text('Repayment End:', 20, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(repayEnd, 80, yOffset);
-      yOffset += 12;
-
-      doc.setFont('helvetica', 'bold');
-      doc.text('Summary:', 20, yOffset);
-      yOffset += 8;
-      doc.setFont('helvetica', 'normal');
-      const summaryLines = doc.splitTextToSize(summary, 170);
-      doc.text(summaryLines, 20, yOffset);
-      yOffset += summaryLines.length * 6 + 12;
-
-      return yOffset;
-    }
-
-    // Generate PDF
-    function generatePDF() {
-      const doc = new jsPDF();
-      let yOffset = 20;
-      yOffset = generatePDFContent(doc, yOffset);
-      const signatureData = signatureCanvas.toDataURL('image/png', 1.0);
-      doc.addImage(signatureData, 'PNG', 20, yOffset, 60, 30, undefined, 'FAST');
-      return doc;
-    }
-
-    // Download PDF
-    function downloadPDF() {
-      try {
-        const doc = generatePDF();
-        const name = document.getElementById('name').value || 'Loan_Request';
-        const today = new Date().toISOString().split('T')[0];
-        doc.save(`${name}_${today}.pdf`);
-      } catch (e) {
-        console.error('Download PDF error:', e);
-      }
-    }
-
-    // Share on WhatsApp
-    function shareOnWhatsApp() {
-      try {
-        const doc = generatePDF();
-        const name = document.getElementById('name').value || 'Loan_Request';
-        const today = new Date().toISOString().split('T')[0];
-        const filename = `${name}_${today}.pdf`;
-        const blob = doc.output('blob');
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-
-        if (navigator.share && !isIOS) {
-          const file = new File([blob], filename, { type: 'application/pdf' });
-          navigator.share({
-            files: [file],
-            title: 'Loan Request PDF',
-            text: `Please find attached loan request PDF (${filename}).`
-          })
-          .then(() => console.log('Shared successfully'))
-          .catch(err => {
-            console.error('Web Share API error:', err);
-            const url = URL.createObjectURL(blob);
-            window.open(`https://wa.me/?text=Please find attached loan request PDF (${filename}). Download: ${url}`, '_blank');
-          });
+        if (username === 'AN' && password === '1234') {
+          loginScreen.style.display = 'none';
+          mainContent.style.display = 'block';
+          mainHeader.style.display = 'flex';
+          mainContent.classList.remove('hidden');
+          mainHeader.classList.remove('hidden');
+          loginError.classList.add('hidden');
+          loadLoanTable();
         } else {
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = filename;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-          alert('PDF has been downloaded. Please open it and share via WhatsApp.');
+          loginError.classList.remove('hidden');
         }
-      } catch (e) {
-        console.error('Share on WhatsApp error:', e);
-        alert('An error occurred while sharing. Please try downloading the PDF instead.');
+      } catch (error) {
+        console.error('Login error:', error);
+        document.getElementById('loginError').textContent = 'An error occurred. Please try again.';
+        document.getElementById('loginError').classList.remove('hidden');
       }
     }
 
+    // Logout
+    function logout() {
+      try {
+        const loginScreen = document.getElementById('loginScreen');
+        const mainContent = document.getElementById('mainContent');
+        const mainHeader = document.getElementById('mainHeader');
+        loginScreen.style.display = 'flex';
+        mainContent.style.display = 'none';
+        mainHeader.style.display = 'none';
+        mainContent.classList.add('hidden');
+        mainHeader.classList.add('hidden');
+        document.getElementById('username').value = '';
+        document.getElementById('password').value = '';
+        document.getElementById('loginError').classList.add('hidden');
+      } catch (error) {
+        console.error('Logout error:', error);
+      }
+    }
+
+    // Load loan table
+    function loadLoanTable() {
+      const loanTable = document.getElementById('loanTable');
+      loanTable.innerHTML = '<div class="loading">Loading loan details...</div>';
+
+      fetch('Loan.csv')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Failed to load Loan.csv: ${response.status} ${response.statusText}`);
+          }
+          return response.text();
+        })
+        .then(data => {
+          if (!data.trim()) {
+            throw new Error('Loan.csv is empty');
+          }
+          const rows = data.trim().split('\n').map(row => row.split(','));
+          if (rows.length < 2) {
+            throw new Error('Loan.csv has insufficient data');
+          }
+          const headers = rows[0];
+          const tableData = rows.slice(1);
+
+          // Calculate derived columns
+          const currentMonthIndex = headers.length - 1;
+          const currentMonth = headers[currentMonthIndex];
+          const currentDate = new Date(currentMonth + '-01');
+          currentDate.setMonth(currentDate.getMonth() + 1); // End of current month
+          const derivedHeaders = ['MONTHLY INSTALLMENTS', 'TOTAL REPAID', 'OVERDUE AMOUNT', 'OVERDUE MONTHS', 'STATUS', 'BALANCE PAYABLE'];
+          const displayHeaders = ['SN', 'Name', 'LOAN ISSUE DATE', 'LOAN AMOUNT', 'AGREED TO REPAY IN (MONTHS)', ...derivedHeaders, ...headers.slice(5)];
+
+          const derivedData = tableData.map(row => {
+            const loanAmount = parseFloat(row[3]) || 0;
+            const monthsToRepay = parseInt(row[4]) || 1;
+            const issueDate = new Date(row[2]);
+            const monthlyInstallment = loanAmount ? (loanAmount / monthsToRepay).toFixed(2) : '0.00';
+
+            // Calculate total repaid
+            let totalRepaid = 0;
+            for (let i = 5; i < row.length; i++) {
+              totalRepaid += parseFloat(row[i]) || 0;
+            }
+
+            // Calculate months passed
+            const monthsPassed = Math.max(0, Math.ceil((currentDate - issueDate) / (1000 * 60 * 60 * 24 * 30.42))); // Approx days per month
+
+            // Calculate overdue amount
+            const expectedPayment = loanAmount ? monthlyInstallment * Math.min(monthsPassed, monthsToRepay) : 0;
+            const overdueAmount = loanAmount ? Math.max(0, expectedPayment - totalRepaid).toFixed(0) : '0';
+
+            // Calculate overdue months
+            const monthsPaid = loanAmount ? Math.floor(totalRepaid / monthlyInstallment) : 0;
+            const overdueMonths = loanAmount ? Math.max(0, Math.min(monthsPassed, monthsToRepay) - monthsPaid) : 0;
+
+            // Calculate balance payable
+            const balancePayable = loanAmount ? (loanAmount - totalRepaid).toFixed(0) : '0';
+
+            // Calculate status
+            let status = '❌ No Loan';
+            if (loanAmount > 0) {
+              if (monthsPassed === 0) {
+                status = '⏳ Not Yet Due';
+              } else if (totalRepaid > expectedPayment) {
+                status = '💰 Overpaid';
+              } else if (totalRepaid === expectedPayment) {
+                status = '✅ On Time';
+              } else if (totalRepaid > 0) {
+                status = '🟡 Partially Paid';
+              } else {
+                status = '❌ Not Paid';
+              }
+            }
+
+            return [...row, monthlyInstallment, totalRepaid.toFixed(0), overdueAmount, overdueMonths, status, balancePayable];
+          });
+
+          // Create loan table
+          const table = document.createElement('table');
+          const thead = document.createElement('thead');
+          const tbody = document.createElement('tbody');
+
+          // Add headers
+          const headerRow = document.createElement('tr');
+          displayHeaders.forEach(header => {
+            const th = document.createElement('th');
+            th.textContent = header;
+            headerRow.appendChild(th);
+          });
+          thead.appendChild(headerRow);
+
+          // Add data rows
+          derivedData.forEach(row => {
+            const tr = document.createElement('tr');
+            const status = row[row.length - 2];
+            if (status === '🟡 Partially Paid' || status === '❌ Not Paid') {
+              tr.classList.add('non-paying');
+            }
+            displayHeaders.forEach((_, i) => {
+              const td = document.createElement('td');
+              td.textContent = row[i] || '-';
+              tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+          });
+
+          // Add totals row
+          const totals = new Array(displayHeaders.length).fill(0);
+          derivedData.forEach(row => {
+            [3, 6, 7, 8, 10].forEach(idx => { // LOAN AMOUNT, TOTAL REPAID, OVERDUE AMOUNT, OVERDUE MONTHS, BALANCE PAYABLE
+              totals[idx] += parseFloat(row[idx]) || 0;
+            });
+            for (let i = 11; i < row.length; i++) { // Monthly payments
+              totals[i] += parseFloat(row[i]) || 0;
+            }
+          });
+
+          const totalRow = document.createElement('tr');
+          totalRow.classList.add('total-row');
+          displayHeaders.forEach((header, i) => {
+            const td = document.createElement('td');
+            if (i === 0) {
+              td.textContent = '';
+            } else if (i === 1) {
+              td.textContent = 'TOTAL';
+            } else if ([3, 6, 7, 8, 10].includes(i) || i >= 11) {
+              td.textContent = totals[i] ? totals[i].toFixed(0) : '-';
+            } else {
+              td.textContent = '-';
+            }
+            totalRow.appendChild(td);
+          });
+          tbody.appendChild(totalRow);
+
+          table.appendChild(thead);
+          table.appendChild(tbody);
+          loanTable.innerHTML = '';
+          loanTable.appendChild(table);
+        })
+        .catch(error => {
+          console.error('Error loading loan table:', error.message);
+          loanTable.innerHTML = `<div class="error-box">Error loading loan details: ${error.message}. Please check if Loan.csv exists and is correctly formatted.</div>`;
+        });
+    }
+
+    // Dark mode toggle
     document.addEventListener('DOMContentLoaded', () => {
-      // Initialize form elements
-      const repayStart = document.getElementById('repayStart');
-      const repayEnd = document.getElementById('repayEnd');
-      const loanDate = document.getElementById('loanDate');
-      const monthsInput = document.getElementById('months');
-      const reasonSelect = document.getElementById('reason');
-      const otherReasonDiv = document.getElementById('otherReasonDiv');
-      signatureCanvas = document.getElementById('signatureCanvas');
-      ctx = signatureCanvas.getContext('2d');
-      const amountInput = document.getElementById('amount');
-      const amountError = document.getElementById('amountError');
-      const form = document.getElementById('loanForm');
-
-      // Set request date
-      document.getElementById('requestDate').value = new Date().toISOString().split('T')[0];
-
-      // Canvas event handlers
-      setCanvasSize();
-
-      function getMousePos(event) {
-        const rect = signatureCanvas.getBoundingClientRect();
-        return {
-          x: event.clientX - rect.left,
-          y: event.clientY - rect.top
-        };
-      }
-
-      function getTouchPos(touch) {
-        const rect = signatureCanvas.getBoundingClientRect();
-        return {
-          x: touch.clientX - rect.left,
-          y: touch.clientY - rect.top
-        };
-      }
-
-      function startDrawing(pos) {
-        drawing = true;
-        ctx.beginPath();
-        ctx.moveTo(pos.x, pos.y);
-      }
-
-      function draw(pos) {
-        if (!drawing) return;
-        ctx.lineTo(pos.x, pos.y);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(pos.x, pos.y);
-      }
-
-      function stopDrawing() {
-        drawing = false;
-        ctx.beginPath();
-      }
-
-      signatureCanvas.addEventListener('mousedown', (e) => {
-        try {
-          const pos = getMousePos(e);
-          startDrawing(pos);
-        } catch (e) {
-          console.error('Mouse down error:', e);
-        }
-      });
-
-      signatureCanvas.addEventListener('mousemove', (e) => {
-        try {
-          const pos = getMousePos(e);
-          draw(pos);
-        } catch (e) {
-          console.error('Mouse move error:', e);
-        }
-      });
-
-      signatureCanvas.addEventListener('mouseup', stopDrawing);
-      signatureCanvas.addEventListener('mouseout', stopDrawing);
-
-      signatureCanvas.addEventListener('touchstart', (e) => {
-        try {
-          e.preventDefault();
-          const pos = getTouchPos(e.touches[0]);
-          startDrawing(pos);
-        } catch (e) {
-          console.error('Touch start error:', e);
-        }
-      }, { passive: false });
-
-      signatureCanvas.addEventListener('touchmove', (e) => {
-        try {
-          e.preventDefault();
-          const pos = getTouchPos(e.touches[0]);
-          draw(pos);
-        } catch (e) {
-          console.error('Touch move error:', e);
-        }
-      }, { passive: false });
-
-      signatureCanvas.addEventListener('touchend', (e) => {
-        try {
-          e.preventDefault();
-          stopDrawing();
-        } catch (e) {
-          console.error('Touch end error:', e);
-        }
-      }, { passive: false });
-
-      // Form logic
-      function autoSetRepaymentDates() {
-        try {
-          const loanDateValue = new Date(loanDate.value);
-          const monthsToPay = parseInt(monthsInput.value);
-          if (!isNaN(loanDateValue.getTime()) && monthsToPay > 0) {
-            const startDate = new Date(loanDateValue);
-            startDate.setMonth(startDate.getMonth() + 2);
-            repayStart.valueAsDate = startDate;
-
-            const endDate = new Date(startDate);
-            endDate.setMonth(endDate.getMonth() + monthsToPay);
-            repayEnd.valueAsDate = endDate;
-          }
-        } catch (e) {
-          console.error('Auto set repayment dates error:', e);
-        }
-      }
-
-      function updateRepayEndFromStart() {
-        try {
-          const startDate = new Date(repayStart.value);
-          const months = parseInt(monthsInput.value);
-          if (!isNaN(startDate.getTime()) && months > 0) {
-            const endDate = new Date(startDate);
-            endDate.setMonth(endDate.getMonth() + months);
-            repayEnd.valueAsDate = endDate;
-            generateSummary();
-          }
-        } catch (e) {
-          console.error('Update repay end error:', e);
-        }
-      }
-
-      function generateSummary() {
-        try {
-          const applicant = document.getElementById('name').value;
-          const amount = document.getElementById('amount').value;
-          const reqDate = loanDate.value;
-          const reason = reasonSelect.value === 'Other' ? document.getElementById('otherReason').value : reasonSelect.value;
-          const endDate = repayEnd.value;
-
-          if (!amount || !reqDate || !endDate || !applicant || !reason) return;
-
-          const summary = `
-            Dear Avadhi Nidhi Committee,
-
-            I would like to request for a loan of AED ${amount} on ${reqDate}
-            for ${reason}.
-            I will repay the loan amount completely by ${endDate}.
-
-            Kindly approve my request.
-
-            Requested By
-            ${applicant}
-          `;
-          document.getElementById('summaryMessage').innerText = summary;
-        } catch (e) {
-          console.error('Generate summary error:', e);
-        }
-      }
-
-      amountInput.addEventListener('input', () => {
-        try {
-          if (parseInt(amountInput.value) > 2000) {
-            amountInput.classList.add('error');
-            amountError.classList.remove('hidden');
-          } else {
-            amountInput.classList.remove('error');
-            amountError.classList.add('hidden');
-          }
-          generateSummary();
-        } catch (e) {
-          console.error('Amount input error:', e);
-        }
-      });
-
-      repayStart.addEventListener('change', updateRepayEndFromStart);
-      monthsInput.addEventListener('input', () => {
-        autoSetRepaymentDates();
-        generateSummary();
-      });
-      reasonSelect.addEventListener('change', () => {
-        otherReasonDiv.classList.toggle('hidden', reasonSelect.value !== 'Other');
-        generateSummary();
-      });
-      loanDate.addEventListener('change', () => {
-        autoSetRepaymentDates();
-        generateSummary();
-      });
-
-      ['name', 'otherReason', 'repayEnd'].forEach(id => {
-        document.getElementById(id).addEventListener('input', generateSummary);
-      });
-
-      // Handle form reset
-      form.addEventListener('reset', () => {
-        try {
-          clearSignature();
-          document.getElementById('summaryMessage').innerHTML = '';
-          otherReasonDiv.classList.add('hidden');
-        } catch (e) {
-          console.error('Form reset error:', e);
-        }
-      });
-
-      // Dark mode toggle
       document.getElementById('darkToggle').addEventListener('click', () => {
         document.body.classList.toggle('dark');
       });
