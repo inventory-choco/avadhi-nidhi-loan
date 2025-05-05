@@ -328,6 +328,19 @@
       }
     }
 
+    // Calculate months difference (similar to Excel DATEDIF)
+    function getMonthsDiff(startDate, endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const yearsDiff = end.getFullYear() - start.getFullYear();
+      const monthsDiff = end.getMonth() - start.getMonth();
+      let totalMonths = yearsDiff * 12 + monthsDiff;
+      if (end.getDate() < start.getDate()) {
+        totalMonths--;
+      }
+      return Math.max(0, totalMonths);
+    }
+
     // Load loan table
     function loadLoanTable() {
       const loanTable = document.getElementById('loanTable');
@@ -351,11 +364,8 @@
           const headers = rows[0];
           const tableData = rows.slice(1);
 
-          // Calculate derived columns
-          const currentMonthIndex = headers.length - 1;
-          const currentMonth = headers[currentMonthIndex];
-          const currentDate = new Date(currentMonth + '-01');
-          currentDate.setMonth(currentDate.getMonth() + 1); // End of current month
+          // Current date
+          const currentDate = new Date('2025-05-05');
           const derivedHeaders = ['MONTHLY INSTALLMENTS', 'TOTAL REPAID', 'OVERDUE AMOUNT', 'OVERDUE MONTHS', 'STATUS', 'BALANCE PAYABLE'];
           const displayHeaders = ['SN', 'Name', 'LOAN ISSUE DATE', 'LOAN AMOUNT', 'AGREED TO REPAY IN (MONTHS)', ...derivedHeaders, ...headers.slice(5)];
 
@@ -372,10 +382,12 @@
             }
 
             // Calculate months passed
-            const monthsPassed = Math.max(0, Math.ceil((currentDate - issueDate) / (1000 * 60 * 60 * 24 * 30.42))); // Approx days per month
+            const monthsPassed = getMonthsDiff(issueDate, currentDate);
+
+            // Calculate expected payment
+            const expectedPayment = loanAmount ? (monthlyInstallment * Math.min(monthsPassed, monthsToRepay)).toFixed(2) : 0;
 
             // Calculate overdue amount
-            const expectedPayment = loanAmount ? monthlyInstallment * Math.min(monthsPassed, monthsToRepay) : 0;
             const overdueAmount = loanAmount ? Math.max(0, expectedPayment - totalRepaid).toFixed(0) : '0';
 
             // Calculate overdue months
@@ -392,9 +404,9 @@
                 status = '⏳ Not Yet Due';
               } else if (totalRepaid > expectedPayment) {
                 status = '💰 Overpaid';
-              } else if (totalRepaid === expectedPayment) {
+              } else if (Math.abs(totalRepaid - expectedPayment) < 0.01) { // Handle floating-point precision
                 status = '✅ On Time';
-              } else if (totalRepaid > 0) {
+              } else if (totalRepaid > 0 && totalRepaid < expectedPayment) {
                 status = '🟡 Partially Paid';
               } else {
                 status = '❌ Not Paid';
