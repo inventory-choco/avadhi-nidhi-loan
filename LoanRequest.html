@@ -83,8 +83,7 @@
       color: var(--text);
     }
 
-    .form-group input,
-    .form-group select {
+    .form-group input {
       width: 100%;
       padding: 10px;
       border: 1px solid var(--border);
@@ -95,8 +94,7 @@
       box-sizing: border-box;
     }
 
-    .form-group input:focus,
-    .form-group select:focus {
+    .form-group input:focus {
       outline: none;
       border-color: var(--primary);
       box-shadow: 0 0 5px rgba(0, 102, 204, 0.3);
@@ -214,7 +212,7 @@
     }
 
     @media only screen and (-webkit-min-device-pixel-ratio: 2) {
-      input, select {
+      input {
         font-size: 16px;
         -webkit-appearance: none;
       }
@@ -247,32 +245,21 @@
       <div class="form-group">
         <label for="name">Name</label>
         <input type="text" id="name" required>
-        <p id="nameError" class="error-message hidden">Please enter a valid name</p>
       </div>
       <div class="form-group">
         <label for="loanAmount">Loan Amount (AED)</label>
-        <input type="number" id="loanAmount" min="1" required>
-        <p id="loanAmountError" class="error-message hidden">Please enter a valid loan amount</p>
+        <input type="number" id="loanAmount" required>
       </div>
       <div class="form-group">
         <label for="repaymentMonths">Repayment Period (Months)</label>
-        <select id="repaymentMonths" required>
-          <option value="" disabled selected>Select months</option>
-          <option value="3">3</option>
-          <option value="6">6</option>
-          <option value="12">12</option>
-          <option value="18">18</option>
-          <option value="24">24</option>
-        </select>
-        <p id="repaymentMonthsError" class="error-message hidden">Please select a repayment period</p>
+        <input type="number" id="repaymentMonths" required>
       </div>
       <div class="form-group">
         <label for="loanDate">Loan Issue Date</label>
         <input type="date" id="loanDate" required>
-        <p id="loanDateError" class="error-message hidden">Please select a valid date</p>
       </div>
       <div class="button-row">
-        <button type="button" class="button" onclick="submitLoanRequest()">Submit</button>
+        <button type="submit" class="button">Submit</button>
         <button type="button" class="button secondary" onclick="logout()">Logout</button>
       </div>
     </form>
@@ -326,57 +313,25 @@
       }
     }
 
-    function submitLoanRequest() {
+    document.getElementById('loanRequestForm').addEventListener('submit', function(event) {
+      event.preventDefault();
       try {
-        const name = document.getElementById('name').value.trim();
-        const loanAmount = parseFloat(document.getElementById('loanAmount').value);
+        const name = document.getElementById('name').value;
+        const loanAmount = document.getElementById('loanAmount').value;
         const repaymentMonths = document.getElementById('repaymentMonths').value;
         const loanDate = document.getElementById('loanDate').value;
 
-        const nameError = document.getElementById('nameError');
-        const loanAmountError = document.getElementById('loanAmountError');
-        const repaymentMonthsError = document.getElementById('repaymentMonthsError');
-        const loanDateError = document.getElementById('loanDateError');
-
-        let isValid = true;
-
-        if (!name || !/^[a-zA-Z\s]+$/.test(name)) {
-          nameError.classList.remove('hidden');
-          isValid = false;
-        } else {
-          nameError.classList.add('hidden');
-        }
-
-        if (!loanAmount || loanAmount <= 0) {
-          loanAmountError.classList.remove('hidden');
-          isValid = false;
-        } else {
-          loanAmountError.classList.add('hidden');
-        }
-
-        if (!repaymentMonths) {
-          repaymentMonthsError.classList.remove('hidden');
-          isValid = false;
-        } else {
-          repaymentMonthsError.classList.add('hidden');
-        }
-
-        if (!loanDate) {
-          loanDateError.classList.remove('hidden');
-          isValid = false;
-        } else {
-          loanDateError.classList.add('hidden');
-        }
-
-        if (isValid) {
-          alert(`Loan request submitted:\nName: ${name}\nLoan Amount: AED ${loanAmount}\nRepayment Period: ${repaymentMonths} months\nLoan Issue Date: ${new Date(loanDate).toLocaleDateString()}`);
+        if (name && loanAmount && repaymentMonths && loanDate) {
+          alert(`Loan request submitted:\nName: ${name}\nLoan Amount: AED ${loanAmount}\nRepayment Period: ${repaymentMonths} months\nLoan Issue Date: ${loanDate}`);
           document.getElementById('loanRequestForm').reset();
+        } else {
+          alert('Please fill in all fields.');
         }
       } catch (error) {
         console.error('Error submitting loan request:', error);
         alert('An error occurred while submitting the loan request. Please try again.');
       }
-    }
+    });
 
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('darkToggle').addEventListener('click', () => {

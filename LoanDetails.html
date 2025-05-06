@@ -213,7 +213,6 @@
       justify-content: center;
     }
 
-    /* Mobile-friendly styles */
     @media only screen and (max-width: 600px) {
       .container {
         padding: 15px;
@@ -242,7 +241,6 @@
       }
     }
 
-    /* iOS-specific fixes */
     @media only screen and (-webkit-min-device-pixel-ratio: 2) {
       input {
         font-size: 16px;
@@ -281,7 +279,6 @@
   </div>
 
   <script>
-    // Authentication
     function login() {
       try {
         const username = document.getElementById('username').value;
@@ -309,7 +306,6 @@
       }
     }
 
-    // Logout
     function logout() {
       try {
         const loginScreen = document.getElementById('loginScreen');
@@ -328,7 +324,18 @@
       }
     }
 
-    // Load loan table
+    function getMonthsDiff(startDate, endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const yearsDiff = end.getFullYear() - start.getFullYear();
+      const monthsDiff = end.getMonth() - start.getMonth();
+      let totalMonths = yearsDiff * 12 + monthsDiff;
+      if (end.getDate() < start.getDate()) {
+        totalMonths--;
+      }
+      return Math.max(0, totalMonths);
+    }
+
     function loadLoanTable() {
       const loanTable = document.getElementById('loanTable');
       loanTable.innerHTML = '<div class="loading">Loading loan details...</div>';
@@ -351,51 +358,50 @@
           const headers = rows[0];
           const tableData = rows.slice(1);
 
-          // Calculate derived columns
-          const currentMonthIndex = headers.length - 1;
-          const currentMonth = headers[currentMonthIndex];
-          const currentDate = new Date(currentMonth + '-01');
+          const currentDate = new Date('2025-05-05');
           const derivedHeaders = ['MONTHLY INSTALLMENTS', 'TOTAL REPAID', 'OVERDUE AMOUNT', 'OVERDUE MONTHS', 'STATUS', 'BALANCE PAYABLE'];
           const displayHeaders = ['SN', 'Name', 'LOAN ISSUE DATE', 'LOAN AMOUNT', 'AGREED TO REPAY IN (MONTHS)', ...derivedHeaders, ...headers.slice(5)];
+
           const derivedData = tableData.map(row => {
             const loanAmount = parseFloat(row[3]) || 0;
             const monthsToRepay = parseInt(row[4]) || 1;
             const issueDate = new Date(row[2]);
-            const monthlyInstallment = (loanAmount / monthsToRepay).toFixed(2);
-            let totalRepaid = 0;
-            let overdueAmount = 0;
-            let overdueMonths = 0;
+            const monthlyInstallment = loanAmount ? (loanAmount / monthsToRepay).toFixed(2) : '0.00';
 
-            // Calculate total repaid and overdue
+            let totalRepaid = 0;
             for (let i = 5; i < row.length; i++) {
-              const payment = parseFloat(row[i]) || 0;
-              totalRepaid += payment;
-              const monthDate = new Date(headers[i] + '-01');
-              if (monthDate >= issueDate && monthDate <= currentDate && monthDate < new Date(issueDate.setMonth(issueDate.getMonth() + monthsToRepay))) {
-                if (payment < monthlyInstallment) {
-                  overdueAmount += (monthlyInstallment - payment);
-                  overdueMonths++;
-                }
+              totalRepaid += parseFloat(row[i]) || 0;
+            }
+
+            const monthsPassed = getMonthsDiff(issueDate, currentDate);
+            const expectedPayment = loanAmount ? (monthlyInstallment * Math.min(monthsPassed, monthsToRepay)).toFixed(2) : 0;
+            const overdueAmount = loanAmount ? Math.max(0, expectedPayment - totalRepaid).toFixed(0) : '0';
+            const monthsPaid = loanAmount ? Math.floor(totalRepaid / monthlyInstallment) : 0;
+            const overdueMonths = loanAmount ? Math.max(0, Math.min(monthsPassed, monthsToRepay) - monthsPaid) : 0;
+            const balancePayable = loanAmount ? (loanAmount - totalRepaid).toFixed(0) : '0';
+
+            let status = '❌ No Loan';
+            if (loanAmount > 0) {
+              if (monthsPassed === 0) {
+                status = '⏳ Not Yet Due';
+              } else if (totalRepaid > expectedPayment) {
+                status = '💰 Overpaid';
+              } else if (Math.abs(totalRepaid - expectedPayment) < 0.01) {
+                status = '✅ On Time';
+              } else if (totalRepaid > 0 && totalRepaid < expectedPayment) {
+                status = '🟡 Partially Paid';
+              } else {
+                status = '❌ Not Paid';
               }
             }
 
-            const balancePayable = (loanAmount - totalRepaid).toFixed(0);
-            let status = 'Active';
-            if (balancePayable <= 0) {
-              status = 'Completed';
-            } else if (overdueAmount > 0) {
-              status = 'Overdue';
-            }
-
-            return [...row, monthlyInstallment, totalRepaid.toFixed(0), overdueAmount.toFixed(0), overdueMonths, status, balancePayable];
+            return [...row, monthlyInstallment, totalRepaid.toFixed(0), overdueAmount, overdueMonths, status, balancePayable];
           });
 
-          // Create loan table
           const table = document.createElement('table');
           const thead = document.createElement('thead');
           const tbody = document.createElement('tbody');
 
-          // Add headers
           const headerRow = document.createElement('tr');
           displayHeaders.forEach(header => {
             const th = document.createElement('th');
@@ -404,10 +410,10 @@
           });
           thead.appendChild(headerRow);
 
-          // Add data rows
           derivedData.forEach(row => {
             const tr = document.createElement('tr');
-            if (row[row.length - 2] === 'Overdue') {
+            const status = row[row.length - 2];
+            if (status === '🟡 Partially Paid' || status === '❌ Not Paid') {
               tr.classList.add('non-paying');
             }
             displayHeaders.forEach((_, i) => {
@@ -418,13 +424,12 @@
             tbody.appendChild(tr);
           });
 
-          // Add totals row
           const totals = new Array(displayHeaders.length).fill(0);
           derivedData.forEach(row => {
-            [3, 6, 7, 8, 10].forEach(idx => { // LOAN AMOUNT, TOTAL REPAID, OVERDUE AMOUNT, OVERDUE MONTHS, BALANCE PAYABLE
+            [3, 6, 7, 8, 10].forEach(idx => {
               totals[idx] += parseFloat(row[idx]) || 0;
             });
-            for (let i = 11; i < row.length; i++) { // Monthly payments
+            for (let i = 11; i < row.length; i++) {
               totals[i] += parseFloat(row[i]) || 0;
             }
           });
@@ -457,7 +462,6 @@
         });
     }
 
-    // Dark mode toggle
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('darkToggle').addEventListener('click', () => {
         document.body.classList.toggle('dark');
