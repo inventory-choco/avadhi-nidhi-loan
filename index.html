@@ -14,19 +14,37 @@
     .toggle-btn { margin-bottom: 1rem; }
     .loans-section { display: none; }
     .loans-section.active { display: block; }
-    .summary-card { background: #fff; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+    .summary-card { background: #fff; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 2rem; animation: fadeIn 0.5s ease-in; }
     .summary-card h3 { margin-bottom: 1rem; }
     .summary-card p { margin: 0.5rem 0; }
+    .header-container { display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; }
+    .header-logo { width: 100px; height: 100px; border-radius: 50%; margin-right: 1rem; object-fit: cover; }
+    .table-responsive { animation: slideIn 0.5s ease-out; }
+    .btn-primary { transition: transform 0.2s, background-color 0.2s; }
+    .btn-primary:hover { transform: scale(1.05); background-color: #005f99; }
+    tr { transition: background-color 0.2s; }
+    tr:hover { background-color: #e9f4ff; }
     @media print {
-      .toggle-btn, .request-loan-btn, h1 { display: none !important; }
+      .toggle-btn, .request-loan-btn, h1, .header-logo { display: none !important; }
       body { padding: 0; }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-20px); }
+      to { opacity: 1; transform: translateX(0); }
     }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <h1 class="text-center mb-4">Avadhi Nidhi</h1>
+    <div class="header-container">
+      <img src="images/an-Logo.png" alt="Avadhi Nidhi Logo" class="header-logo">
+      <h1 class="text-center mb-4">Avadhi Nidhi</h1>
+    </div>
 
     <button class="btn btn-primary request-loan-btn mb-3" onclick="window.location.href='LoanRequestForm.html'">Request for a Loan</button>
 
