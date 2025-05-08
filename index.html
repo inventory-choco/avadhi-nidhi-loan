@@ -57,19 +57,25 @@
 
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script>
-    const today's date = new Date("2025-05-05");
+    const today = new Date("2025-05-05");
     const loanFile = "Loan.csv";
     const paymentsFile = "payments.csv";
 
     function parseCSV(file, callback) {
+      console.log(`Parsing CSV: ${file}`);
       Papa.parse(file, {
         header: true,
         download: true,
-        complete: results => callback(results.data)
+        complete: results => {
+          console.log(`Parsed ${file}:`, results.data);
+          callback(results.data);
+        },
+        error: err => console.error(`Error parsing ${file}:`, err)
       });
     }
 
     function buildTable(containerId, headers, rows, totals = null) {
+      console.log(`Building table ${containerId} with headers:`, headers);
       const container = document.getElementById(containerId);
       container.innerHTML = '';
       const thead = document.createElement('thead');
@@ -122,7 +128,7 @@
     }
 
     function processLoans(data) {
-      // Filter valid loan entries
+      console.log("Processing loans data:", data);
       const result = data
         .filter(row => row["LOAN AMOUNT"] && !isNaN(parseFloat(row["LOAN AMOUNT"])))
         .map(row => {
@@ -162,9 +168,9 @@
         });
 
       const headers = result.length > 0 ? Object.keys(result[0]) : ["SN", "Name", "Loan Date", "Loan Amt", "Months", "EMI", "Repaid", "Overdue Amt", "Overdue Mo", "Status", "Balance", "Mar-25", "Apr-25", "May-25"];
+      console.log("Loan table headers:", headers, "Rows:", result);
       buildTable("loansTable", headers, result);
 
-      // Calculate loan summary metrics
       const totalLoanProvided = result.reduce((sum, row) => sum + row["Loan Amt"], 0);
       const totalLoanRepaid = result.reduce((sum, row) => sum + row["Repaid"], 0);
       document.getElementById('totalLoanProvided').textContent = totalLoanProvided.toFixed(2);
@@ -173,9 +179,9 @@
     }
 
     function processPayments(data) {
+      console.log("Processing payments data:", data);
       const headers = Object.keys(data[0]);
       const numericCols = ["Total Paid", "OB", "Mar-25", "Apr-25", "May-25"];
-      // Calculate totals
       const totals = {};
       numericCols.forEach(col => {
         totals[col] = data.reduce((sum, row) => sum + (parseFloat(row[col]) || 0), 0);
@@ -183,13 +189,11 @@
 
       buildTable("paymentsTable", headers, data, totals);
 
-      // Calculate payment summary metrics
       const totalMembers = data.length;
       const currentMonthPaid = totals["May-25"];
       const currentMonthOutstanding = (totalMembers * 100) - currentMonthPaid;
       const totalMonthlyPaid = totals["Total Paid"];
 
-      // Update summary display
       document.getElementById('totalMembers').textContent = totalMembers;
       document.getElementById('currentMonthPaid').textContent = currentMonthPaid.toFixed(2);
       document.getElementById('currentMonthOutstanding').textContent = currentMonthOutstanding.toFixed(2);
