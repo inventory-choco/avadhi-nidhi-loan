@@ -11,9 +11,11 @@
     table { font-size: 0.875rem; }
     th, td { white-space: nowrap; }
     .table-responsive { max-height: 400px; overflow-x: auto; }
-    .print-btn { position: fixed; top: 10px; right: 10px; z-index: 999; }
+    .toggle-btn { margin-bottom: 1rem; }
+    .loans-section { display: none; }
+    .loans-section.active { display: block; }
     @media print {
-      .print-btn, h1 { display: none !important; }
+      .toggle-btn, .request-loan-btn, h1 { display: none !important; }
       body { padding: 0; }
     }
   </style>
@@ -21,18 +23,21 @@
 <body>
 
   <div class="container">
-    <button class="btn btn-primary print-btn" onclick="window.print()">🖨️ Print</button>
+    <h1 class="text-center mb-4">Avadhi Nidhi</h1>
 
-    <h1 class="text-center mb-4">Avadhi Nidhi Loan Tracker</h1>
+    <button class="btn btn-primary request-loan-btn mb-3" onclick="window.location.href='LoanRequestForm.html'">Request for a Loan</button>
 
     <h2>📄 Payments</h2>
     <div class="table-responsive mb-5">
       <table class="table table-striped table-bordered" id="paymentsTable"></table>
     </div>
 
-    <h2>💳 Loans</h2>
-    <div class="table-responsive">
-      <table class="table table-striped table-bordered" id="loansTable"></table>
+    <button class="btn btn-primary toggle-btn" onclick="toggleLoans()">Toggle Loans</button>
+    <div class="loans-section" id="loansSection">
+      <h2>💳 Loans</h2>
+      <div class="table-responsive">
+        <table class="table table-striped table-bordered" id="loansTable"></table>
+      </div>
     </div>
   </div>
 
@@ -129,6 +134,11 @@
       });
 
       parseCSV(loanFile, processLoans);
+    }
+
+    function toggleLoans() {
+      const loansSection = document.getElementById('loansSection');
+      loansSection.classList.toggle('active');
     }
 
     loadTables();
