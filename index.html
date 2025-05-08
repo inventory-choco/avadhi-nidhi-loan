@@ -14,6 +14,9 @@
     .toggle-btn { margin-bottom: 1rem; }
     .loans-section { display: none; }
     .loans-section.active { display: block; }
+    .summary-card { background: #fff; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+    .summary-card h3 { margin-bottom: 1rem; }
+    .summary-card p { margin: 0.5rem 0; }
     @media print {
       .toggle-btn, .request-loan-btn, h1 { display: none !important; }
       body { padding: 0; }
@@ -26,6 +29,17 @@
     <h1 class="text-center mb-4">Avadhi Nidhi</h1>
 
     <button class="btn btn-primary request-loan-btn mb-3" onclick="window.location.href='LoanRequestForm.html'">Request for a Loan</button>
+
+    <div class="summary-card">
+      <h3>Summary</h3>
+      <p><strong>Total Number of Members:</strong> <span id="totalMembers">0</span></p>
+      <p><strong>Current Month Total Paid:</strong> AED <span id="currentMonthPaid">0</span></p>
+      <p><strong>Current Month Outstanding Payment:</strong> AED <span id="currentMonthOutstanding">0</span></p>
+      <p><strong>Total Monthly Paid:</strong> AED <span id="totalMonthlyPaid">0</span></p>
+      <p><strong>Total Loan Provided:</strong> AED <span id="totalLoanProvided">0</span></p>
+      <p><strong>Total Loan Repaid:</strong> AED <span id="totalLoanRepaid">0</span></p>
+      <p><strong>Balance:</strong> AED <span id="balance">0</span></p>
+    </div>
 
     <h2>📄 Payments</h2>
     <div class="table-responsive mb-5">
@@ -125,15 +139,45 @@
 
       const headers = Object.keys(result[0]);
       buildTable("loansTable", headers, result);
+
+      // Calculate loan summary metrics
+      const totalLoanProvided = result.reduce((sum, row) => sum + (isNaN(row["Loan Amt"]) ? 0 : row["Loan Amt"]), 0);
+      const totalLoanRepaid = result.reduce((sum, row) => sum + (isNaN(row["Repaid"]) ? 0 : row["Repaid"]), 0);
+      document.getElementById('totalLoanProvided').textContent = totalLoanProvided.toFixed(2);
+      document.getElementById('totalLoanRepaid').textContent = totalLoanRepaid.toFixed(2);
+      return { totalLoanProvided, totalLoanRepaid };
+    }
+
+    function processPayments(data) {
+      // Filter out the TOTAL row
+      const filteredData = data.filter(row => row["Name"] !== "TOTAL");
+      const headers = Object.keys(filteredData[0]);
+      buildTable("paymentsTable", headers, filteredData);
+
+      // Calculate payment summary metrics
+      const totalMembers = filteredData.length;
+      const currentMonthPaid = filteredData.reduce((sum, row) => sum + (parseFloat(row["May-25"]) || 0), 0);
+      const currentMonthOutstanding = (totalMembers * 100) - currentMonthPaid;
+      const totalMonthlyPaid = filteredData.reduce((sum, row) => sum + (parseFloat(row["Total Paid"]) || 0), 0);
+
+      // Update summary display
+      document.getElementById('totalMembers').textContent = totalMembers;
+      document.getElementById('currentMonthPaid').textContent = currentMonthPaid.toFixed(2);
+      document.getElementById('currentMonthOutstanding').textContent = currentMonthOutstanding.toFixed(2);
+      document.getElementById('totalMonthlyPaid').textContent = totalMonthlyPaid.toFixed(2);
+
+      return { totalMembers, currentMonthPaid, totalMonthlyPaid };
     }
 
     function loadTables() {
-      parseCSV(paymentsFile, data => {
-        const headers = Object.keys(data[0]);
-        buildTable("paymentsTable", headers, data);
+      parseCSV(paymentsFile, paymentsData => {
+        const paymentsMetrics = processPayments(paymentsData);
+        parseCSV(loanFile, loanData => {
+          const loanMetrics = processLoans(loanData);
+          const balance = paymentsMetrics.totalMonthlyPaid - loanMetrics.totalLoanProvided + loanMetrics.totalLoanRepaid;
+          document.getElementById('balance').textContent = balance.toFixed(2);
+        });
       });
-
-      parseCSV(loanFile, processLoans);
     }
 
     function toggleLoans() {
