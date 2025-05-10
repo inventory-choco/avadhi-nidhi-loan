@@ -154,10 +154,13 @@
           const overdueAmt = Math.max(0, (monthsPassed * emi) - repaid);
           const balance = loanAmt - repaid;
           let status = "❌ Not Paid";
-          if (monthsPassed === 0) status = "⏳ Not Yet Due";
-          else if (repaid > monthsPassed * emi) status = "💰 Overpaid";
-          else if (repaid === monthsPassed * emi) status = "✅ On Time";
-          else if (repaid > 0 && repaid < monthsPassed * emi) status = "🟡 Partially Paid";
+          if (monthsPassed === 0) {
+            status = "⏳ Not Yet Due";
+          } else if (repaid >= monthsPassed * emi) {
+            status = repaid > monthsPassed * emi ? "💰 Overpaid" : "✅ On Time";
+          } else if (repaid > 0) {
+            status = "🟡 Partially Paid";
+          }
 
           const output = {
             SN: row["SN"],
