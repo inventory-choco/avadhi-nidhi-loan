@@ -138,57 +138,64 @@
     }
 
     function processLoans(data) {
-      const result = data
-        .filter(row => row["LOAN AMOUNT"] && !isNaN(parseFloat(row["LOAN AMOUNT"])) && row["Name"])
-        .map(row => {
-          const name = row["Name"];
-          const loanAmt = parseFloat(row["LOAN AMOUNT"]);
-          const loanDate = new Date(row["LOAN ISSUE DATE"]);
-          const months = parseInt(row["AGREED TO REPAY IN (MONTHS)"]);
-          const emi = Math.round(loanAmt / months);
-          const monthCols = Object.keys(row).filter(k => /^\w{3}-\d{2,4}$/.test(k));
-          const repaid = monthCols.reduce((sum, col) => sum + (parseFloat(row[col]) || 0), 0);
-          const monthsPassed = monthsBetween(loanDate, today);
-          const paidMonths = Math.floor(repaid / emi);
-          const overdueMo = Math.max(0, monthsPassed - paidMonths);
-          const overdueAmt = Math.max(0, (monthsPassed * emi) - repaid);
-          const balance = loanAmt - repaid;
-          let status = "❌ Not Paid";
-          if (monthsPassed === 0) {
-            status = "⏳ Not Yet Due";
-          } else if (repaid >= monthsPassed * emi) {
-            status = repaid > monthsPassed * emi ? "💰 Overpaid" : "✅ On Time";
-          } else if (repaid > 0) {
-            status = "🟡 Partially Paid";
-          }
-          console.log(`Loan Status for ${name}: monthsPassed=${monthsPassed}, repaid=${repaid}, emi=${emi}, status=${status}`);
+  const result = data
+    .filter(row => row["Name"] && row["SN"]) // Include all rows with Name and SN
+    .map(row => {
+      const name = row["Name"];
+      const loanAmt = parseFloat(row["LOAN AMOUNT"]);
+      const hasLoan = row["LOAN AMOUNT"] && !isNaN(loanAmt);
+      let status = hasLoan ? "❌ Not Paid" : "❌ No Loan";
+      let emi = 0, repaid = 0, monthsPassed = 0, overdueMo = 0, overdueAmt = 0, balance = 0, months = 0;
+      const monthCols = Object.keys(row).filter(k => /^\w{3}-\d{2,4}$/.test(k));
 
-          const output = {
-            SN: row["SN"],
-            Name: name,
-            "Loan Date": row["LOAN ISSUE DATE"],
-            "Loan Amt": loanAmt,
-            "Months": months,
-            "EMI": emi,
-            "Repaid": repaid,
-            "Overdue Amt": overdueAmt,
-            "Overdue Mo": overdueMo,
-            "Status": status,
-            "Balance": balance
-          };
-          monthCols.forEach(col => output[col] = row[col] || '');
-          return output;
-        });
+      if (hasLoan) {
+        const loanDate = new Date(row["LOAN ISSUE DATE"]);
+        months = parseInt(row["AGREED TO REPAY IN (MONTHS)"]);
+        emi = Math.round(loanAmt / months);
+        repaid = monthCols.reduce((sum, col) => sum + (parseFloat(row[col]) || 0), 0);
+        monthsPassed = monthsBetween(loanDate, today);
+        const paidMonths = Math.floor(repaid / emi);
+        overdueMo = Math.max(0, monthsPassed - paidMonths);
+        overdueAmt = Math.max(0, (monthsPassed * emi) - repaid);
+        balance = loanAmt - repaid;
 
-      const headers = result.length > 0 ? Object.keys(result[0]) : ["SN", "Name", "Loan Date", "Loan Amt", "Months", "EMI", "Repaid", "Overdue Amt", "Overdue Mo", "Status", "Balance", "Mar-25", "Apr-25", "May-25"];
-      buildTable("loansTable", headers, result);
+        if (monthsPassed === 0) {
+          status = "⏳ Not Yet Due";
+        } else if (repaid >= monthsPassed * emi) {
+          status = repaid > monthsPassed * emi ? "💰 Overpaid" : "✅ On Time";
+        } else if (repaid > 0) {
+          status = "🟡 Partially Paid";
+        }
+      }
 
-      const totalLoanProvided = result.reduce((sum, row) => sum + row["Loan Amt"], 0);
-      const totalLoanRepaid = result.reduce((sum, row) => sum + row["Repaid"], 0);
-      document.getElementById('totalLoanProvided').textContent = totalLoanProvided.toFixed(2);
-      document.getElementById('totalLoanRepaid').textContent = totalLoanRepaid.toFixed(2);
-      return { totalLoanProvided, totalLoanRepaid };
-    }
+      console.log(`Loan Status for ${name}: monthsPassed=${monthsPassed}, repaid=${repaid}, emi=${emi}, status=${status}`);
+
+      const output = {
+        SN: row["SN"],
+        Name: name,
+        "Loan Date": hasLoan ? row["LOAN ISSUE DATE"] : "",
+        "Loan Amt": hasLoan ? loanAmt : "",
+        "Months": hasLoan ? months : "",
+        "EMI": hasLoan ? emi : "",
+        "Repaid": hasLoan ? repaid : "",
+        "Overdue Amt": hasLoan ? overdueAmt : "",
+        "Overdue Mo": hasLoan ? overdueMo : "",
+        "Status": status,
+        "Balance": hasLoan ? balance : ""
+      };
+      monthCols.forEach(col => output[col] = row[col] || '');
+      return output;
+    });
+
+  const headers = result.length > 0 ? Object.keys(result[0]) : ["SN", "Name", "Loan Date", "Loan Amt", "Months", "EMI", "Repaid", "Overdue Amt", "Overdue Mo", "Status", "Balance", "Mar-25", "Apr-25", "May-25"];
+  buildTable("loansTable", headers, result);
+
+  const totalLoanProvided = result.reduce((sum, row) => sum + (parseFloat(row["Loan Amt"]) || 0), 0);
+  const totalLoanRepaid = result.reduce((sum, row) => sum + (parseFloat(row["Repaid"]) || 0), 0);
+  document.getElementById('totalLoanProvided').textContent = totalLoanProvided.toFixed(2);
+  document.getElementById('totalLoanRepaid').textContent = totalLoanRepaid.toFixed(2);
+  return { totalLoanProvided, totalLoanRepaid };
+}
 
     function processPayments(data) {
       const validData = data.filter(row => row["Name"] && row["SN"]);
