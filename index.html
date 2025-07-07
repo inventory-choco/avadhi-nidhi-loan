@@ -62,7 +62,7 @@
     <div class="summary-card">
       <h3>Summary</h3>
       <p><strong>Total Number of Members:</strong> <span id="totalMembers">0</span></p>
-      <p><strong>Current Month Expected Total Receipt:</strong> <span id="CurrExpTotal">0</span></p>
+      <p><strong>Current Month Expected Total Receipt:</strong> AED <span id="currentMonthExpected">0</span></p>
       <p><strong>Current Month Total Paid:</strong> AED <span id="currentMonthPaid">0</span></p>
       <p><strong>Current Month Outstanding Payment:</strong> AED <span id="currentMonthOutstanding">0</span></p>
       <p><strong>Total Monthly Paid:</strong> AED <span id="totalMonthlyPaid">0</span></p>
@@ -255,7 +255,8 @@
       const totalMembers = allPaymentsData.length;
       const currentMonth = headers.filter(h => /^\w{3}-\d{2,4}$/.test(h)).slice(-1)[0] || "May-25";
       const currentMonthPaid = totals[currentMonth] || 0;
-      const currentMonthOutstanding = (totalMembers * 100) - currentMonthPaid;
+      const currentMonthExpected = totalMembers * 100;
+      const currentMonthOutstanding = currentMonthExpected - currentMonthPaid;
       const totalMonthlyPaid = totals["Total Paid"];
 
       const select = document.getElementById('memberSelect');
@@ -268,6 +269,7 @@
       });
 
       document.getElementById('totalMembers').textContent = totalMembers.toString();
+      document.getElementById('currentMonthExpected').textContent = currentMonthExpected.toFixed(2);
       document.getElementById('currentMonthPaid').textContent = currentMonthPaid.toFixed(2);
       document.getElementById('currentMonthOutstanding').textContent = currentMonthOutstanding.toFixed(2);
       document.getElementById('totalMonthlyPaid').textContent = totalMonthlyPaid.toFixed(2);
