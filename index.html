@@ -207,7 +207,7 @@
     function processPayments(data) {
       const validData = data.filter(row => row["Name"] && row["SN"]);
       const headers = validData.length > 0 ? Object.keys(validData[0]) : ["SN", "Name", "Total Paid", "OB", "Mar-25", "Apr-25", "May-25"];
-      const numericCols = ["Total Paid", "OB", "Mar-25", "Apr-25", "May-25"];
+      const numericCols = headers.filter(h => /^\w{3}-\d{2,4}$/.test(h) || h === "Total Paid" || h === "OB");
       const totals = {};
       numericCols.forEach(col => {
         totals[col] = validData.reduce((sum, row) => sum + (parseFloat(row[col]) || 0), 0);
@@ -216,7 +216,8 @@
       buildTable("paymentsTable", headers, validData, totals);
 
       const totalMembers = validData.length;
-      const currentMonthPaid = totals["May-25"];
+      const currentMonthPaid = totals[currentMonth] || 0;
+      const currentMonth = headers.filter(h => /^\w{3}-\d{2,4}$/.test(h)).slice(-1)[0] || "May-25";
       const currentMonthOutstanding = (totalMembers * 100) - currentMonthPaid;
       const totalMonthlyPaid = totals["Total Paid"];
 
