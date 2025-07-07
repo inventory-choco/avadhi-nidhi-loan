@@ -32,6 +32,7 @@
       border-right: 2px solid #dee2e6;
     }
     th:nth-child(2) { z-index: 2; }
+    thead { position: sticky; top: 0; background: #fff; z-index: 3; }
     .member-details { background: #fff; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 1rem; }
     .member-details select { width: 100%; max-width: 300px; margin-bottom: 1rem; }
     @media print {
@@ -98,6 +99,7 @@
     const paymentsFile = "payments.csv";
     let allPaymentsData = [];
     let allLoansData = [];
+    let allLoansResult = [];
 
     function parseCSV(file, callback) {
       Papa.parse(file, {
@@ -180,7 +182,7 @@
     function processLoans(data) {
       console.log("Loan data:", data);
       allLoansData = data.filter(row => row["Name"] && row["SN"]);
-      const result = allLoansData.map(row => {
+      allLoansResult = allLoansData.map(row => {
         const name = row["Name"];
         const loanAmt = parseFloat(row["LOAN AMOUNT"]);
         const hasLoan = row["LOAN AMOUNT"] && !isNaN(loanAmt);
@@ -227,11 +229,11 @@
         return output;
       });
 
-      const headers = result.length > 0 ? Object.keys(result[0]) : ["SN", "Name", "Loan Date", "Loan Amt", "Months", "EMI", "Repaid", "Overdue Amt", "Overdue Mo", "Status", "Balance", "Mar-25", "Apr-25", "May-25"];
-      buildTable("loansTable", headers, result);
+      const headers = allLoansResult.length > 0 ? Object.keys(allLoansResult[0]) : ["SN", "Name", "Loan Date", "Loan Amt", "Months", "EMI", "Repaid", "Overdue Amt", "Overdue Mo", "Status", "Balance", "Mar-25", "Apr-25", "May-25"];
+      buildTable("loansTable", headers, allLoansResult);
 
-      const totalLoanProvided = result.reduce((sum, row) => sum + (parseFloat(row["Loan Amt"]) || 0), 0);
-      const totalLoanRepaid = result.reduce((sum, row) => sum + (parseFloat(row["Repaid"]) || 0), 0);
+      const totalLoanProvided = allLoansResult.reduce((sum, row) => sum + (parseFloat(row["Loan Amt"]) || 0), 0);
+      const totalLoanRepaid = allLoansResult.reduce((sum, row) => sum + (parseFloat(row["Repaid"]) || 0), 0);
       document.getElementById('totalLoanProvided').textContent = totalLoanProvided.toFixed(2);
       document.getElementById('totalLoanRepaid').textContent = totalLoanRepaid.toFixed(2);
       return { totalLoanProvided, totalLoanRepaid };
@@ -282,9 +284,9 @@
       }
 
       const payment = allPaymentsData.find(row => row["Name"] === memberName) || {};
-      const loan = allLoansData.find(row => row["Name"] === memberName) || {};
+      const loan = allLoansResult.find(row => row["Name"] === memberName) || {};
       const currentMonth = payment[Object.keys(payment).filter(h => /^\w{3}-\d{2,4}$/.test(h)).slice(-1)[0]] || 0;
-      const loanAmt = parseFloat(loan["LOAN AMOUNT"]) || 0;
+      const loanAmt = parseFloat(loan["Loan Amt"]) || 0;
       const loanRepaid = parseFloat(loan["Repaid"]) || 0;
       const loanBalance = loanAmt - loanRepaid;
 
