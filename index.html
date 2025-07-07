@@ -19,11 +19,21 @@
     .summary-card p { margin: 0.5rem 0; }
     .header-container { display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; }
     .header-logo { width: 100px; height: 100px; border-radius: 50%; margin-right: 1rem; object-fit: cover; }
-    .table-responsive { animation: slideIn 0.5s ease-out; }
+    .table-responsive { animation: slideIn 0.5s ease-out; position: relative; }
     .btn-primary { transition: transform 0.2s, background-color 0.2s; }
     .btn-primary:hover { transform: scale(1.05); background-color: #005f99; }
     tr { transition: background-color 0.2s; }
     tr:hover { background-color: #e9f4ff; }
+    th:nth-child(2), td:nth-child(2) {
+      position: sticky;
+      left: 0;
+      background: #fff;
+      z-index: 1;
+      border-right: 2px solid #dee2e6;
+    }
+    th:nth-child(2) { z-index: 2; }
+    .member-details { background: #fff; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 1rem; }
+    .member-details select { width: 100%; max-width: 300px; margin-bottom: 1rem; }
     @media print {
       .toggle-btn, .request-loan-btn, h1, .header-logo { display: none !important; }
       body { padding: 0; }
@@ -59,6 +69,14 @@
       <p><strong>Balance:</strong> AED <span id="balance">0</span></p>
     </div>
 
+    <div class="member-details">
+      <h3>Member Details</h3>
+      <select id="memberSelect" onchange="displayMemberDetails()">
+        <option value="">Select a Member</option>
+      </select>
+      <div id="memberDetails"></div>
+    </div>
+
     <h2>📄 Payments</h2>
     <div class="table-responsive mb-5">
       <table class="table table-striped table-bordered" id="paymentsTable"></table>
@@ -78,18 +96,34 @@
     const today = new Date("2025-07-07");
     const loanFile = "Loan.csv";
     const paymentsFile = "payments.csv";
+    let allPaymentsData = [];
+    let allLoansData = [];
 
     function parseCSV(file, callback) {
       Papa.parse(file, {
         header: true,
         download: true,
-        complete: results => callback(results.data),
-        error: err => console.error(`Error parsing ${file}:`, err)
+        complete: results => {
+          if (!results.data || results.data.length === 0) {
+            console.error(`No data loaded from ${file}`);
+            alert(`Failed to load ${file}. Please check the file path.`);
+            return;
+          }
+          callback(results.data);
+        },
+        error: err => {
+          console.error(`Error parsing ${file}:`, err);
+          alert(`Error loading ${file}. Please check the file path or server.`);
+        }
       });
     }
 
     function buildTable(containerId, headers, rows, totals = null) {
       const container = document.getElementById(containerId);
+      if (!container) {
+        console.error(`Container ${containerId} not found`);
+        return;
+      }
       container.innerHTML = '';
       const thead = document.createElement('thead');
       const tbody = document.createElement('tbody');
@@ -145,54 +179,53 @@
 
     function processLoans(data) {
       console.log("Loan data:", data);
-      const result = data
-        .filter(row => row["Name"] && row["SN"])
-        .map(row => {
-          const name = row["Name"];
-          const loanAmt = parseFloat(row["LOAN AMOUNT"]);
-          const hasLoan = row["LOAN AMOUNT"] && !isNaN(loanAmt);
-          let status = hasLoan ? "❌ Not Paid" : "❌ No Loan";
-          let emi = 0, repaid = 0, monthsPassed = 0, overdueMo = 0, overdueAmt = 0, balance = 0, months = 0;
-          const monthCols = Object.keys(row).filter(k => /^\w{3}-\d{2,4}$/.test(k));
+      allLoansData = data.filter(row => row["Name"] && row["SN"]);
+      const result = allLoansData.map(row => {
+        const name = row["Name"];
+        const loanAmt = parseFloat(row["LOAN AMOUNT"]);
+        const hasLoan = row["LOAN AMOUNT"] && !isNaN(loanAmt);
+        let status = hasLoan ? "❌ Not Paid" : "❌ No Loan";
+        let emi = 0, repaid = 0, monthsPassed = 0, overdueMo = 0, overdueAmt = 0, balance = 0, months = 0;
+        const monthCols = Object.keys(row).filter(k => /^\w{3}-\d{2,4}$/.test(k));
 
-          if (hasLoan) {
-            const loanDate = parseDateDDMMYY(row["LOAN ISSUE DATE"]);
-            months = parseInt(row["AGREED TO REPAY IN (MONTHS)"]);
-            emi = Math.round(loanAmt / months);
-            repaid = monthCols.reduce((sum, col) => sum + (parseFloat(row[col]) || 0), 0);
-            monthsPassed = monthsBetween(loanDate, today);
-            const paidMonths = Math.floor(repaid / emi);
-            overdueMo = Math.max(0, monthsPassed - paidMonths);
-            overdueAmt = Math.max(0, (monthsPassed * emi) - repaid);
-            balance = loanAmt - repaid;
+        if (hasLoan) {
+          const loanDate = parseDateDDMMYY(row["LOAN ISSUE DATE"]);
+          months = parseInt(row["AGREED TO REPAY IN (MONTHS)"]);
+          emi = Math.round(loanAmt / months);
+          repaid = monthCols.reduce((sum, col) => sum + (parseFloat(row[col]) || 0), 0);
+          monthsPassed = monthsBetween(loanDate, today);
+          const paidMonths = Math.floor(repaid / emi);
+          overdueMo = Math.max(0, monthsPassed - paidMonths);
+          overdueAmt = Math.max(0, (monthsPassed * emi) - repaid);
+          balance = loanAmt - repaid;
 
-            if (monthsPassed === 0) {
-              status = "⏳ Not Yet Due";
-            } else if (repaid >= monthsPassed * emi) {
-              status = repaid > monthsPassed * emi ? "💰 Overpaid" : "✅ On Time";
-            } else if (repaid > 0) {
-              status = "🟡 Partially Paid";
-            }
+          if (monthsPassed === 0) {
+            status = "⏳ Not Yet Due";
+          } else if (repaid >= monthsPassed * emi) {
+            status = repaid > monthsPassed * emi ? "💰 Overpaid" : "✅ On Time";
+          } else if (repaid > 0) {
+            status = "🟡 Partially Paid";
           }
+        }
 
-          console.log(`Loan Status for ${name}: monthsPassed=${monthsPassed}, repaid=${repaid}, emi=${emi}, status=${status}`);
+        console.log(`Loan Status for ${name}: monthsPassed=${monthsPassed}, repaid=${repaid}, emi=${emi}, status=${status}`);
 
-          const output = {
-            SN: row["SN"],
-            Name: name,
-            "Loan Date": hasLoan ? row["LOAN ISSUE DATE"] : "",
-            "Loan Amt": hasLoan ? loanAmt : "",
-            "Months": hasLoan ? months : "",
-            "EMI": hasLoan ? emi : "",
-            "Repaid": hasLoan ? repaid : "",
-            "Overdue Amt": hasLoan ? overdueAmt : "",
-            "Overdue Mo": hasLoan ? overdueMo : "",
-            "Status": status,
-            "Balance": hasLoan ? balance : ""
-          };
-          monthCols.forEach(col => output[col] = row[col] || '');
-          return output;
-        });
+        const output = {
+          SN: row["SN"],
+          Name: name,
+          "Loan Date": hasLoan ? row["LOAN ISSUE DATE"] : "",
+          "Loan Amt": hasLoan ? loanAmt : "",
+          "Months": hasLoan ? months : "",
+          "EMI": hasLoan ? emi : "",
+          "Repaid": hasLoan ? repaid : "",
+          "Overdue Amt": hasLoan ? overdueAmt : "",
+          "Overdue Mo": hasLoan ? overdueMo : "",
+          "Status": status,
+          "Balance": hasLoan ? balance : ""
+        };
+        monthCols.forEach(col => output[col] = row[col] || '');
+        return output;
+      });
 
       const headers = result.length > 0 ? Object.keys(result[0]) : ["SN", "Name", "Loan Date", "Loan Amt", "Months", "EMI", "Repaid", "Overdue Amt", "Overdue Mo", "Status", "Balance", "Mar-25", "Apr-25", "May-25"];
       buildTable("loansTable", headers, result);
@@ -205,22 +238,31 @@
     }
 
     function processPayments(data) {
-      const validData = data.filter(row => row["Name"] && row["SN"]);
-      const headers = validData.length > 0 ? Object.keys(validData[0]) : ["SN", "Name", "Total Paid", "OB", "Mar-25", "Apr-25", "May-25"];
+      allPaymentsData = data.filter(row => row["Name"] && row["SN"]);
+      const headers = allPaymentsData.length > 0 ? Object.keys(allPaymentsData[0]) : ["SN", "Name", "Total Paid", "OB", "Mar-25", "Apr-25", "May-25"];
       const numericCols = headers.filter(h => /^\w{3}-\d{2,4}$/.test(h) || h === "Total Paid" || h === "OB");
       const totals = {};
-      console.log("Payments table data:", validData, "Headers:", headers);
+      console.log("Payments table data:", allPaymentsData, "Headers:", headers);
       numericCols.forEach(col => {
-        totals[col] = validData.reduce((sum, row) => sum + (parseFloat(row[col]) || 0), 0);
+        totals[col] = allPaymentsData.reduce((sum, row) => sum + (parseFloat(row[col]) || 0), 0);
       });
 
-      buildTable("paymentsTable", headers, validData, totals);
+      buildTable("paymentsTable", headers, allPaymentsData, totals);
 
-      const totalMembers = validData.length;
+      const totalMembers = allPaymentsData.length;
       const currentMonth = headers.filter(h => /^\w{3}-\d{2,4}$/.test(h)).slice(-1)[0] || "May-25";
       const currentMonthPaid = totals[currentMonth] || 0;
       const currentMonthOutstanding = (totalMembers * 100) - currentMonthPaid;
       const totalMonthlyPaid = totals["Total Paid"];
+
+      const select = document.getElementById('memberSelect');
+      select.innerHTML = '<option value="">Select a Member</option>';
+      allPaymentsData.forEach(row => {
+        const option = document.createElement('option');
+        option.value = row["Name"];
+        option.textContent = row["Name"];
+        select.appendChild(option);
+      });
 
       document.getElementById('totalMembers').textContent = totalMembers.toString();
       document.getElementById('currentMonthPaid').textContent = currentMonthPaid.toFixed(2);
@@ -228,6 +270,33 @@
       document.getElementById('totalMonthlyPaid').textContent = totalMonthlyPaid.toFixed(2);
 
       return { totalMembers, currentMonthPaid, totalMonthlyPaid };
+    }
+
+    function displayMemberDetails() {
+      const select = document.getElementById('memberSelect');
+      const memberName = select.value;
+      const detailsDiv = document.getElementById('memberDetails');
+      if (!memberName) {
+        detailsDiv.innerHTML = '';
+        return;
+      }
+
+      const payment = allPaymentsData.find(row => row["Name"] === memberName) || {};
+      const loan = allLoansData.find(row => row["Name"] === memberName) || {};
+      const currentMonth = payment[Object.keys(payment).filter(h => /^\w{3}-\d{2,4}$/.test(h)).slice(-1)[0]] || 0;
+      const loanAmt = parseFloat(loan["LOAN AMOUNT"]) || 0;
+      const loanRepaid = parseFloat(loan["Repaid"]) || 0;
+      const loanBalance = loanAmt - loanRepaid;
+
+      detailsDiv.innerHTML = `
+        <p><strong>Name:</strong> ${memberName}</p>
+        <p><strong>Total Paid:</strong> AED ${payment["Total Paid"] || 0}</p>
+        <p><strong>Current Month Payment:</strong> AED ${currentMonth}</p>
+        <p><strong>Current Month Outstanding:</strong> AED ${currentMonth ? (100 - currentMonth) : 100}</p>
+        <p><strong>Loan Amount:</strong> AED ${loanAmt.toFixed(2)}</p>
+        <p><strong>Loan Repaid:</strong> AED ${loanRepaid.toFixed(2)}</p>
+        <p><strong>Loan Balance:</strong> AED ${loanBalance.toFixed(2)}</p>
+      `;
     }
 
     function loadTables() {
