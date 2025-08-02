@@ -287,7 +287,8 @@
       }
 
       const payment = allPaymentsData.find(row => row["Name"] === memberName) || {};
-      const loan = allLoansResult.find(row => row["Name"] === memberName) || {};
+      const normalizedMemberName = memberName.replace(/ \(Pending Request\)$/, '');
+      const loan = allLoansResult.find(row => row["Name"] === memberName || row["Name"] === normalizedMemberName + " (Pending Request)") || {};
       const currentMonthKey = Object.keys(payment).filter(h => /^\w{3}-\d{2,4}$/.test(h)).slice(-1)[0] || "May-25";
       const currentMonth = payment[currentMonthKey] || 0;
       const monthAbbr = currentMonthKey.split('-')[0];
