@@ -291,7 +291,8 @@
       const loan = allLoansResult.find(row => row["Name"] === memberName) || {};
       const currentMonthKey = Object.keys(payment).filter(h => /^\w{3}-\d{2,4}$/.test(h)).slice(-1)[0] || "May-25";
       const currentMonth = payment[currentMonthKey] || 0;
-      const monthNum = parseInt(currentMonthKey.split('-')[1]) + (currentMonthKey.split('-')[0] === 'Jan' ? 0 : currentMonthKey.split('-')[0] === 'Feb' ? 1 : currentMonthKey.split('-')[0] === 'Mar' ? 2 : currentMonthKey.split('-')[0] === 'Apr' ? 3 : currentMonthKey.split('-')[0] === 'May' ? 4 : currentMonthKey.split('-')[0] === 'Jun' ? 5 : currentMonthKey.split('-')[0] === 'Jul' ? 6 : currentMonthKey.split('-')[0] === 'Aug' ? 7 : currentMonthKey.split('-')[0] === 'Sep' ? 8 : currentMonthKey.split('-')[0] === 'Oct' ? 9 : currentMonthKey.split('-')[0] === 'Nov' ? 10 : 11);
+      const monthAbbr = currentMonthKey.split('-')[0];
+      const monthNum = monthAbbr === 'Jan' ? 1 : monthAbbr === 'Feb' ? 2 : monthAbbr === 'Mar' ? 3 : monthAbbr === 'Apr' ? 4 : monthAbbr === 'May' ? 5 : monthAbbr === 'Jun' ? 6 : monthAbbr === 'Jul' ? 7 : monthAbbr === 'Aug' ? 8 : monthAbbr === 'Sep' ? 9 : monthAbbr === 'Oct' ? 10 : monthAbbr === 'Nov' ? 11 : 12;
       const expectedPayment = monthNum * 100 + 200;
       const totalPaid = parseFloat(payment["Total Paid"]) || 0;
       const loanAmt = parseFloat(loan["Loan Amt"]) || 0;
