@@ -35,8 +35,9 @@
     thead { position: sticky; top: 0; background: #fff; z-index: 3; }
     .member-details { background: #fff; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 1rem; }
     .member-details select { width: 100%; max-width: 300px; margin-bottom: 1rem; }
+    .last-updated { position: absolute; top: 10px; left: 10px; font-size: 0.75rem; color: #666; }
     @media print {
-      .toggle-btn, .request-loan-btn, h1, .header-logo { display: none !important; }
+      .toggle-btn, .request-loan-btn, h1, .header-logo, .last-updated { display: none !important; }
       body { padding: 0; }
     }
     @keyframes fadeIn {
@@ -50,6 +51,7 @@
   </style>
 </head>
 <body>
+  <div class="last-updated">Last Updated: 07:34 PM +04, Saturday, August 02, 2025</div>
 
   <div class="container">
     <div class="header-container">
@@ -287,8 +289,7 @@
       }
 
       const payment = allPaymentsData.find(row => row["Name"] === memberName) || {};
-      const normalizedMemberName = memberName.replace(/ \(Pending Request\)$/, '');
-      const loan = allLoansResult.find(row => row["Name"] === memberName || row["Name"] === normalizedMemberName + " (Pending Request)") || {};
+      const loan = allLoansResult.find(row => row["Name"] === memberName || row["Name"] === memberName + "- (Pending Request)") || {};
       const currentMonthKey = Object.keys(payment).filter(h => /^\w{3}-\d{2,4}$/.test(h)).slice(-1)[0] || "May-25";
       const currentMonth = payment[currentMonthKey] || 0;
       const monthAbbr = currentMonthKey.split('-')[0];
