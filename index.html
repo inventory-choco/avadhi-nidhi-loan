@@ -255,8 +255,7 @@
       const totalMembers = allPaymentsData.length;
       const currentMonth = headers.filter(h => /^\w{3}-\d{2,4}$/.test(h)).slice(-1)[0] || "May-25";
       const currentMonthPaid = totals[currentMonth] || 0;
-      const monthNum = parseInt(currentMonth.split('-')[1]) + (currentMonth.split('-')[0] === 'Jan' ? 0 : currentMonth.split('-')[0] === 'Feb' ? 1 : currentMonth.split('-')[0] === 'Mar' ? 2 : currentMonth.split('-')[0] === 'Apr' ? 3 : currentMonth.split('-')[0] === 'May' ? 4 : currentMonth.split('-')[0] === 'Jun' ? 5 : currentMonth.split('-')[0] === 'Jul' ? 6 : currentMonth.split('-')[0] === 'Aug' ? 7 : currentMonth.split('-')[0] === 'Sep' ? 8 : currentMonth.split('-')[0] === 'Oct' ? 9 : currentMonth.split('-')[0] === 'Nov' ? 10 : 11);
-      const currentMonthExpected = totalMembers * (monthNum * 100 + 200);
+      const currentMonthExpected = totalMembers * 100;
       const currentMonthOutstanding = currentMonthExpected - currentMonthPaid;
       const totalMonthlyPaid = totals["Total Paid"];
 
