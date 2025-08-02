@@ -293,6 +293,7 @@
       const currentMonth = payment[currentMonthKey] || 0;
       const monthNum = parseInt(currentMonthKey.split('-')[1]) + (currentMonthKey.split('-')[0] === 'Jan' ? 0 : currentMonthKey.split('-')[0] === 'Feb' ? 1 : currentMonthKey.split('-')[0] === 'Mar' ? 2 : currentMonthKey.split('-')[0] === 'Apr' ? 3 : currentMonthKey.split('-')[0] === 'May' ? 4 : currentMonthKey.split('-')[0] === 'Jun' ? 5 : currentMonthKey.split('-')[0] === 'Jul' ? 6 : currentMonthKey.split('-')[0] === 'Aug' ? 7 : currentMonthKey.split('-')[0] === 'Sep' ? 8 : currentMonthKey.split('-')[0] === 'Oct' ? 9 : currentMonthKey.split('-')[0] === 'Nov' ? 10 : 11);
       const expectedPayment = monthNum * 100 + 200;
+      const totalPaid = parseFloat(payment["Total Paid"]) || 0;
       const loanAmt = parseFloat(loan["Loan Amt"]) || 0;
       const loanRepaid = parseFloat(loan["Repaid"]) || 0;
       const loanBalance = loanAmt - loanRepaid;
@@ -301,7 +302,7 @@
         <p><strong>Name:</strong> ${memberName}</p>
         <p><strong>Total Paid:</strong> AED ${payment["Total Paid"] || 0}</p>
         <p><strong>Current Month Payment:</strong> AED ${currentMonth}</p>
-        <p><strong>Total Monthly Outstanding:</strong> AED ${(expectedPayment - currentMonth).toFixed(2)}</p>
+        <p><strong>Total Monthly Outstanding:</strong> AED ${(expectedPayment - totalPaid).toFixed(2)}</p>
         <p><strong>Loan Amount:</strong> AED ${loanAmt.toFixed(2)}</p>
         <p><strong>Loan Repaid:</strong> AED ${loanRepaid.toFixed(2)}</p>
         <p><strong>Loan Balance:</strong> AED ${loanBalance.toFixed(2)}</p>
