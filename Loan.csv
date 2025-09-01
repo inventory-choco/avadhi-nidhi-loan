@@ -1,7 +1,10 @@
-SN,Name,LOAN ISSUE DATE,LOAN AMOUNT,AGREED TO REPAY IN (MONTHS),Mar-25,Apr-25,May-25,Jun-25,Jul-25,Aug-25
-1,Asif C/O Ashraf,07-05-25,2000,5,,,,,,
-2,Kasim Tirur,27-05-25,1000,2,,,,,500,500
-3,Nizam.,19-06-25,2000,5,,,,,,500
-4,Shihab C/O Kasim,13-07-25,2000,5,,,,,,
-5,Ashfad Abdulla,03-08-25,2000,4,,,,,,
-6,Sidheeq Kv C/O Kasim-pending request,10-08-25,2000,5,,,,,,
+SN,Name,LOAN ISSUE DATE,LOAN AMOUNT,AGREED TO REPAY IN (MONTHS),Mar-25,Apr-25,May-25,Jun-25,Jul-25,Aug-25,Sep-25
+1,Kasim Tirur,27-05-25,1000,2,,,,,500,500,
+2,Nizam.,19-06-25,2000,5,,,,,,500,
+3,Ashfad Abdulla,02-08-25,2000,4,,,,,,,
+4,Sidheeq Kv C/O Kasim,09-08-25,2000,5,,,,,,,
+5,Asif C/O Ashraf,15-04-25,2000,5,,,,,,,
+6,Shihab C/O Kasim,13-07-25,2000,5,,,,,,,
+7,Mubarak (Requested),,2000,,,,,,,,
+8,Usman Ollassery (Requested),,2000,,,,,,,,
+9,Shahana Usman (Requested),,2000,,,,,,,,
