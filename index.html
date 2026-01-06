@@ -1,333 +1,1554 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Loan & Payment Dashboard</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Avadhi Nidhi — Dashboard</title>
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
   <style>
-    body { padding: 1rem; background: #f7f9fb; }
-    h2 { margin-top: 2rem; }
-    table { font-size: 0.875rem; }
-    th, td { white-space: nowrap; }
-    .table-responsive { max-height: 400px; overflow-x: auto; }
-    .toggle-btn { margin-bottom: 1rem; }
-    .loans-section { display: none; }
-    .loans-section.active { display: block; }
-    .summary-card { background: #fff; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 2rem; animation: fadeIn 0.5s ease-in; }
-    .summary-card h3 { margin-bottom: 1rem; }
-    .summary-card p { margin: 0.5rem 0; }
-    .header-container { display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; }
-    .header-logo { width: 100px; height: 100px; border-radius: 50%; margin-right: 1rem; object-fit: cover; }
-    .table-responsive { animation: slideIn 0.5s ease-out; position: relative; }
-    .btn-primary { transition: transform 0.2s, background-color 0.2s; }
-    .btn-primary:hover { transform: scale(1.05); background-color: #005f99; }
-    tr { transition: background-color 0.2s; }
-    tr:hover { background-color: #e9f4ff; }
-    th:nth-child(2), td:nth-child(2) {
-      position: sticky;
-      left: 0;
-      background: #fff;
-      z-index: 1;
-      border-right: 2px solid #dee2e6;
+    :root{
+      --bg: #0b1220;
+      --panel: rgba(255,255,255,.06);
+      --panel2: rgba(255,255,255,.08);
+      --border: rgba(255,255,255,.10);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.68);
+      --soft: rgba(255,255,255,.04);
+      --good: #1db954;
+      --warn: #f5c542;
+      --bad: #ff5c5c;
+      --accent: #6ea8fe;
     }
-    th:nth-child(2) { z-index: 2; }
-    thead { position: sticky; top: 0; background: #fff; z-index: 3; }
-    .member-details { background: #fff; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 1rem; }
-    .member-details select { width: 100%; max-width: 300px; margin-bottom: 1rem; }
-    .last-updated { position: absolute; top: 10px; left: 10px; font-size: 0.75rem; color: #666; }
-    @media print {
-      .toggle-btn, .request-loan-btn, h1, .header-logo, .last-updated { display: none !important; }
-      body { padding: 0; }
+
+    html, body { height: 100%; }
+    body{
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:
+        radial-gradient(1200px 600px at 10% 0%, rgba(110,168,254,.25), transparent 60%),
+        radial-gradient(900px 500px at 90% 10%, rgba(245,197,66,.18), transparent 55%),
+        radial-gradient(800px 500px at 70% 90%, rgba(29,185,84,.12), transparent 55%),
+        var(--bg);
+      color: var(--text);
     }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
+
+    .container-xl{ max-width: 1200px; }
+    .glass{
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: 0 16px 60px rgba(0,0,0,.35);
+      backdrop-filter: blur(10px);
     }
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateX(-20px); }
-      to { opacity: 1; transform: translateX(0); }
+    .glass2{
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+    }
+
+    .brand{
+      display:flex; align-items:center; gap:14px;
+    }
+    .brand img{
+      width: 54px; height: 54px; border-radius: 50%;
+      object-fit: cover; border:1px solid var(--border);
+      background: rgba(255,255,255,.06);
+    }
+    .brand-title{
+      line-height: 1.1;
+    }
+    .brand-title h1{
+      margin:0; font-size: 1.35rem; font-weight: 800; letter-spacing: .2px;
+    }
+    .brand-title .sub{
+      margin-top: 4px; font-size: .9rem; color: var(--muted);
+    }
+
+    .topbar{
+      padding: 16px 18px;
+      display:flex; align-items:center; justify-content:space-between;
+      gap: 12px;
+    }
+
+    .chip{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.05);
+      color: var(--muted);
+      font-size: .85rem;
+      white-space: nowrap;
+    }
+    .chip strong{ color: var(--text); font-weight: 600; }
+
+    .btn-soft{
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+    .btn-soft:hover{ background: rgba(255,255,255,.10); border-color: rgba(255,255,255,.16); color: var(--text); }
+    .btn-primary{
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-weight: 600;
+    }
+
+    .kpi-grid{
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 12px;
+    }
+    .kpi{
+      grid-column: span 4;
+      padding: 14px 14px 12px;
+    }
+    @media (max-width: 992px){
+      .kpi{ grid-column: span 6; }
+    }
+    @media (max-width: 576px){
+      .kpi{ grid-column: span 12; }
+    }
+
+    .kpi .label{
+      color: var(--muted);
+      font-size: .86rem;
+      display:flex; justify-content:space-between; align-items:center;
+      gap: 10px;
+    }
+    .kpi .value{
+      margin-top: 8px;
+      font-size: 1.65rem;
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+    .kpi .hint{
+      margin-top: 6px;
+      font-size: .85rem;
+      color: var(--muted);
+    }
+    .dot{
+      width: 8px; height: 8px; border-radius: 999px; display:inline-block;
+      background: rgba(255,255,255,.25);
+    }
+    .dot.good{ background: var(--good); }
+    .dot.warn{ background: var(--warn); }
+    .dot.bad{ background: var(--bad); }
+
+    .section{
+      padding: 14px;
+    }
+    .section h2{
+      margin: 0 0 10px 0;
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+    .muted{ color: var(--muted); }
+
+    .member-card{
+      padding: 14px;
+      min-height: 150px;
+    }
+
+    .badge-soft{
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: .82rem;
+      font-weight: 600;
+      display:inline-flex; align-items:center; gap: 8px;
+    }
+    .badge-soft.good{ border-color: rgba(29,185,84,.35); background: rgba(29,185,84,.12); }
+    .badge-soft.warn{ border-color: rgba(245,197,66,.35); background: rgba(245,197,66,.12); }
+    .badge-soft.bad{ border-color: rgba(255,92,92,.35); background: rgba(255,92,92,.12); }
+
+    .table-wrap{
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.04);
+    }
+    table{
+      margin: 0;
+      font-size: .86rem;
+      color: var(--text);
+    }
+    thead th{
+      position: sticky; top: 0;
+      background: rgba(10,17,30,.95);
+      border-bottom: 1px solid var(--border) !important;
+      z-index: 3;
+    }
+    tbody td, tbody th{
+      border-top: 1px solid rgba(255,255,255,.06) !important;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    .sticky-name{
+      position: sticky; left: 0;
+      background: rgba(10,17,30,.88);
+      z-index: 2;
+      border-right: 1px solid rgba(255,255,255,.08);
+    }
+    thead .sticky-name{ z-index: 4; }
+
+    .month-highlight{
+      background: rgba(110,168,254,.10) !important;
+      box-shadow: inset 0 0 0 9999px rgba(110,168,254,.08);
+    }
+
+    .warn-box{
+      border: 1px dashed rgba(245,197,66,.45);
+      background: rgba(245,197,66,.08);
+      color: rgba(255,255,255,.88);
+      border-radius: 14px;
+      padding: 12px 12px;
+    }
+
+    .admin-link{
+      font-size: .86rem;
+      color: rgba(255,255,255,.65);
+      text-decoration: none;
+      border-bottom: 1px dashed rgba(255,255,255,.25);
+    }
+    .admin-link:hover{ color: rgba(255,255,255,.9); border-bottom-color: rgba(255,255,255,.55); }
+
+    .modal-content{
+      background: rgba(10,17,30,.98);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: 0 24px 80px rgba(0,0,0,.55);
+    }
+    .form-control, .form-select{
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+      color: var(--text);
+      border-radius: 12px;
+    }
+    .form-control:focus, .form-select:focus{
+      box-shadow: 0 0 0 .2rem rgba(110,168,254,.18);
+      border-color: rgba(110,168,254,.45);
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+    }
+    .form-control::placeholder{ color: rgba(255,255,255,.45); }
+    .help{
+      font-size: .85rem; color: var(--muted);
+    }
+
+    .toast-wrap{
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      z-index: 9999;
+      width: min(420px, calc(100% - 32px));
     }
   </style>
 </head>
+
 <body>
-  <div class="last-updated">Last Updated: 07:34 PM +04, Saturday, August 02, 2025</div>
+  <div class="container-xl py-3">
 
-  <div class="container">
-    <div class="header-container">
-      <img src="Images/an-Logo.png" alt="Avadhi Nidhi Logo" class="header-logo">
-      <h1 class="text-center mb-4">Avadhi Nidhi</h1>
+    <!-- TOP BAR -->
+    <div class="glass topbar">
+      <div class="brand">
+        <img src="Images/an-Logo.png" alt="Avadhi Nidhi Logo" />
+        <div class="brand-title">
+          <h1>Avadhi Nidhi</h1>
+          <div class="sub">Loan & Payment Dashboard</div>
+        </div>
+      </div>
+
+      <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+        <div class="chip" title="Auto from your browser time">
+          <span class="dot"></span>
+          <span>Last updated: <strong id="lastUpdated">—</strong></span>
+        </div>
+
+        <a class="btn btn-primary" href="LoanRequestForm.html">Request for a Loan</a>
+
+        <a href="#" class="admin-link ms-2" id="adminOpen">⚙ Admin</a>
+      </div>
     </div>
 
-    <button class="btn btn-primary request-loan-btn mb-3" onclick="window.location.href='LoanRequestForm.html'">Request for a Loan</button>
+    <!-- KPI GRID -->
+    <div class="mt-3 glass section">
+      <div class="d-flex align-items-end justify-content-between flex-wrap gap-2 mb-2">
+        <div>
+          <h2 class="mb-1">Overview</h2>
+          <div class="muted">Month columns must be <strong>MMM-YY</strong> (example: <strong>Jan-26</strong>).</div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+          <button class="btn btn-soft" id="btnReload">Reload CSV</button>
+          <span class="chip">
+            <span class="dot" id="monthDot"></span>
+            <span>Active month: <strong id="activeMonthLabel">—</strong></span>
+          </span>
+        </div>
+      </div>
 
-    <div class="summary-card">
-      <h3>Summary</h3>
-      <p><strong>Total Number of Members:</strong> <span id="totalMembers">0</span></p>
-      <p><strong>Current Month Expected Total Receipt:</strong> AED <span id="currentMonthExpected">0</span></p>
-      <p><strong>Current Month Total Paid:</strong> AED <span id="currentMonthPaid">0</span></p>
-      <p><strong>Current Month Outstanding Payment:</strong> AED <span id="currentMonthOutstanding">0</span></p>
-      <p><strong>Total Monthly Paid:</strong> AED <span id="totalMonthlyPaid">0</span></p>
-      <p><strong>Total Loan Provided:</strong> AED <span id="totalLoanProvided">0</span></p>
-      <p><strong>Total Loan Repaid:</strong> AED <span id="totalLoanRepaid">0</span></p>
-      <p><strong>Balance:</strong> AED <span id="balance">0</span></p>
+      <div class="kpi-grid">
+        <div class="glass2 kpi">
+          <div class="label"><span>Total Members</span><span class="dot"></span></div>
+          <div class="value" id="kpiMembers">—</div>
+          <div class="hint">Count from payments.csv</div>
+        </div>
+
+        <div class="glass2 kpi">
+          <div class="label"><span>Expected This Month</span><span class="dot"></span></div>
+          <div class="value">AED <span id="kpiExpectedMonth">—</span></div>
+          <div class="hint">Members × 100</div>
+        </div>
+
+        <div class="glass2 kpi">
+          <div class="label"><span>Paid This Month</span><span class="dot good"></span></div>
+          <div class="value">AED <span id="kpiPaidMonth">—</span></div>
+          <div class="hint">Sum of active month column</div>
+        </div>
+
+        <div class="glass2 kpi">
+          <div class="label"><span>Outstanding This Month</span><span class="dot warn"></span></div>
+          <div class="value">AED <span id="kpiOutMonth">—</span></div>
+          <div class="hint">Expected − Paid</div>
+        </div>
+
+        <div class="glass2 kpi">
+          <div class="label"><span>Paid Till Date</span><span class="dot good"></span></div>
+          <div class="value">AED <span id="kpiPaidTill">—</span></div>
+          <div class="hint">Includes OB</div>
+        </div>
+
+        <div class="glass2 kpi">
+          <div class="label"><span>Outstanding Till Date</span><span class="dot bad"></span></div>
+          <div class="value">AED <span id="kpiOutTill">—</span></div>
+          <div class="hint">Expected till date − Paid till date</div>
+        </div>
+
+        <div class="glass2 kpi">
+          <div class="label"><span>Total Loan Outstanding</span><span class="dot warn"></span></div>
+          <div class="value">AED <span id="kpiLoanOutstanding">—</span></div>
+          <div class="hint">Sum of loan balances</div>
+        </div>
+
+        <div class="glass2 kpi">
+          <div class="label"><span>Fund Balance</span><span class="dot"></span></div>
+          <div class="value">AED <span id="kpiFundBalance">—</span></div>
+          <div class="hint">Paid − Loan Given + Loan Repaid</div>
+        </div>
+      </div>
     </div>
 
-    <div class="member-details">
-      <h3>Member Details</h3>
-      <select id="memberSelect" onchange="displayMemberDetails()">
-        <option value="">Select a Member</option>
-      </select>
-      <div id="memberDetails"></div>
+    <!-- MEMBER QUICK VIEW -->
+    <div class="mt-3 glass section">
+      <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
+        <div>
+          <h2 class="mb-1">Member Quick View</h2>
+          <div class="muted">Select a member to view expected, paid, outstanding, and loan status.</div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+          <select class="form-select" id="memberSelect" style="min-width: 260px;">
+            <option value="">Select member…</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mt-3 glass2 member-card" id="memberCard">
+        <div class="muted">Pick a member to see details.</div>
+      </div>
     </div>
 
-    <h2>📄 Payments</h2>
-    <div class="table-responsive mb-5">
-      <table class="table table-striped table-bordered" id="paymentsTable"></table>
+    <!-- WARNINGS -->
+    <div class="mt-3" id="warningsArea" style="display:none;"></div>
+
+    <!-- PAYMENTS TABLE -->
+    <div class="mt-3 glass section">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div>
+          <h2 class="mb-1">Payments</h2>
+          <div class="muted">Totals row is calculated. Current month column is highlighted.</div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+          <span class="chip"><span class="dot"></span><span>Contribution: <strong>AED 100</strong></span></span>
+        </div>
+      </div>
+
+      <div class="mt-3 table-wrap">
+        <div style="max-height: 420px; overflow:auto;">
+          <table class="table table-dark table-hover align-middle" id="paymentsTable"></table>
+        </div>
+      </div>
     </div>
 
-    <button class="btn btn-primary toggle-btn" onclick="toggleLoans()">Toggle Loans</button>
-    <div class="loans-section" id="loansSection">
-      <h2>💳 Loans</h2>
-      <div class="table-responsive">
-        <table class="table table-striped table-bordered" id="loansTable"></table>
+    <!-- LOANS TABLE -->
+    <div class="mt-3 glass section">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div>
+          <h2 class="mb-1">Loans</h2>
+          <div class="muted">Collapsed by default. EMI is exact to 2 decimals.</div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+          <button class="btn btn-soft" id="btnToggleLoans">Show Loans</button>
+        </div>
+      </div>
+
+      <div class="mt-3 table-wrap" id="loansWrap" style="display:none;">
+        <div style="max-height: 420px; overflow:auto;">
+          <table class="table table-dark table-hover align-middle" id="loansTable"></table>
+        </div>
+      </div>
+    </div>
+
+    <div class="py-4 text-center muted">
+      Built for GitHub Pages • Data source: <strong>payments.csv</strong> + <strong>Loan.csv</strong>
+    </div>
+  </div>
+
+  <!-- ADMIN LOGIN MODAL -->
+  <div class="modal fade" id="adminLoginModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header border-0">
+          <h5 class="modal-title fw-bold">Admin Panel</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body pt-0">
+          <div class="help mb-2">
+            Enter the admin password for the current minute.
+          </div>
+          <input id="adminPass" class="form-control" placeholder="Password" autocomplete="off" />
+          <div class="d-flex gap-2 mt-3">
+            <button class="btn btn-primary flex-fill" id="btnAdminLogin">Unlock</button>
+            <button class="btn btn-soft" data-bs-dismiss="modal">Cancel</button>
+          </div>
+          <div class="help mt-2">
+            Tip: password changes every minute.
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
+  <!-- ADMIN PANEL MODAL -->
+  <div class="modal fade" id="adminPanelModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header border-0">
+          <div>
+            <h5 class="modal-title fw-bold mb-1">Admin Panel</h5>
+            <div class="help">Edit values, then download updated CSV files.</div>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body pt-0">
+          <div class="warn-box mb-3">
+            <div class="fw-bold mb-1">How saving works</div>
+            <div class="help">
+              This page will <strong>download updated payments.csv and Loan.csv</strong>.
+              Then upload/commit them to GitHub using GitHub Desktop (your existing workflow).
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Member</label>
+              <select class="form-select" id="adminMember"></select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Entry Type</label>
+              <select class="form-select" id="adminType">
+                <option value="payment">Monthly Payment</option>
+                <option value="loanrepay">Loan Repayment (month column)</option>
+              </select>
+              <div class="help mt-1">Loan repayment updates the month amount inside Loan.csv for that member.</div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Month</label>
+              <select class="form-select" id="adminMonth"></select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Amount</label>
+              <input class="form-control" id="adminAmount" placeholder="e.g., 100 or 200" inputmode="decimal" />
+              <div class="help mt-1">Use numbers only. You can enter 200 if someone skipped and paid next month.</div>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label">Note (optional)</label>
+              <input class="form-control" id="adminNote" placeholder="Optional note for yourself (not saved in CSV)" />
+            </div>
+          </div>
+
+          <div class="glass2 p-3 mt-3">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+              <div>
+                <div class="fw-bold">Preview</div>
+                <div class="help" id="adminPreview">Select member/type/month and enter amount.</div>
+              </div>
+              <span class="badge-soft" id="unsavedBadge" style="display:none;">
+                <span class="dot warn"></span> Unsaved changes
+              </span>
+            </div>
+
+            <div class="d-flex gap-2 flex-wrap mt-3">
+              <button class="btn btn-soft" id="btnApplyChange">Apply Change</button>
+              <button class="btn btn-primary" id="btnDownloadCsv">Download Updated CSVs</button>
+              <button class="btn btn-soft" id="btnDiscardChanges">Discard Changes</button>
+            </div>
+          </div>
+
+          <div class="help mt-3">
+            Note: This admin gate is <strong>obfuscation</strong> (not bank-grade security). Don’t share the logic.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-wrap" id="toastWrap"></div>
+
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
   <script>
-    const today = new Date("2025-07-07");
-    const loanFile = "Loan.csv";
-    const paymentsFile = "payments.csv";
-    let allPaymentsData = [];
-    let allLoansData = [];
-    let allLoansResult = [];
+    /***********************
+     * CONFIG
+     ***********************/
+    const CSV_PAYMENTS = "payments.csv";
+    const CSV_LOANS = "Loan.csv";
+    const MONTHLY_CONTRIBUTION = 100;
+    const CURRENCY = "AED";
 
-    function parseCSV(file, callback) {
-      Papa.parse(file, {
-        header: true,
-        download: true,
-        complete: results => {
-          if (!results.data || results.data.length === 0) {
-            console.error(`No data loaded from ${file}`);
-            alert(`Failed to load ${file}. Please check the file path.`);
-            return;
-          }
-          callback(results.data);
-        },
-        error: err => {
-          console.error(`Error parsing ${file}:`, err);
-          alert(`Error loading ${file}. Please check the file path or server.`);
-        }
+    /***********************
+     * STATE
+     ***********************/
+    let paymentsRows = [];
+    let loanRows = [];
+
+    let paymentsMonthKeys = []; // sorted MMM-YY keys
+    let loansMonthKeys = [];    // sorted MMM-YY keys
+    let allMonthKeys = [];      // union sorted
+
+    let activeMonthKey = null;
+    let activeMonthDate = null;
+
+    let computed = {
+      members: 0,
+      expectedMonth: 0,
+      paidMonth: 0,
+      outMonth: 0,
+      expectedTill: 0,
+      paidTill: 0,
+      outTill: 0,
+      totalLoanProvided: 0,
+      totalLoanRepaid: 0,
+      totalLoanOutstanding: 0,
+      fundBalance: 0
+    };
+
+    let loansComputedRows = [];     // table-ready
+    let paymentsComputedRows = [];  // table-ready
+
+    let changes = { touched: false };
+
+    /***********************
+     * SMALL UTILITIES
+     ***********************/
+    const $ = (id) => document.getElementById(id);
+
+    function nowLabel() {
+      const d = new Date();
+      const pad = (n) => String(n).padStart(2, "0");
+      const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+      const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      return `${pad(d.getDate())} ${months[d.getMonth()]} ${d.getFullYear()} • ${pad(d.getHours())}:${pad(d.getMinutes())} (${days[d.getDay()]})`;
+    }
+
+    function toMoney(n, dp=2){
+      const x = Number(n);
+      if (!isFinite(x)) return "0.00";
+      return x.toFixed(dp);
+    }
+
+    function isMonthKey(k){
+      return /^[A-Za-z]{3}-\d{2}$/.test((k||"").trim());
+    }
+
+    function monthKeyToDate(k){
+      // k like "Jan-26"
+      const m = (k||"").trim().slice(0,3);
+      const yy = Number((k||"").trim().slice(4,6));
+      const map = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+      if (!(m in map) || !isFinite(yy)) return null;
+      const fullYear = 2000 + yy;
+      return new Date(fullYear, map[m], 1);
+    }
+
+    function dateToMonthKey(d){
+      const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      const yy = String(d.getFullYear()).slice(-2);
+      return `${months[d.getMonth()]}-${yy}`;
+    }
+
+    function sortMonthKeys(keys){
+      return [...new Set(keys.filter(isMonthKey))].sort((a,b) => {
+        const da = monthKeyToDate(a);
+        const db = monthKeyToDate(b);
+        return da - db;
       });
     }
 
-    function buildTable(containerId, headers, rows, totals = null) {
-      const container = document.getElementById(containerId);
-      if (!container) {
-        console.error(`Container ${containerId} not found`);
-        return;
-      }
-      container.innerHTML = '';
-      const thead = document.createElement('thead');
-      const tbody = document.createElement('tbody');
-      const tfoot = totals ? document.createElement('tfoot') : null;
-
-      const trHead = document.createElement('tr');
-      headers.forEach(h => {
-        const th = document.createElement('th');
-        th.textContent = h;
-        trHead.appendChild(th);
-      });
-      thead.appendChild(trHead);
-
-      rows.forEach(row => {
-        const tr = document.createElement('tr');
-        headers.forEach(h => {
-          const td = document.createElement('td');
-          td.textContent = row[h] || '';
-          tr.appendChild(td);
-        });
-        tbody.appendChild(tr);
-      });
-
-      if (totals) {
-        const trFoot = document.createElement('tr');
-        headers.forEach(h => {
-          const td = document.createElement('td');
-          if (h === 'Name') {
-            td.textContent = 'TOTAL';
-          } else if (totals[h]) {
-            td.textContent = totals[h].toFixed(0);
-          }
-          trFoot.appendChild(td);
-        });
-        tfoot.appendChild(trFoot);
-      }
-
-      container.appendChild(thead);
-      container.appendChild(tbody);
-      if (tfoot) container.appendChild(tfoot);
-    }
-
-    function monthsBetween(fromDate, toDate) {
+    function monthsBetween(fromDate, toDate){
+      // year-month based (ignores day). If same month => 0
       const diff = (toDate.getFullYear() - fromDate.getFullYear()) * 12 + (toDate.getMonth() - fromDate.getMonth());
       return Math.max(0, diff);
     }
 
-    function parseDateDDMMYY(dateStr) {
-      const [day, month, year] = dateStr.split('-').map(Number);
+    function parseDateDDMMYY(dateStr){
+      // "27-05-25" or "27-05-2025"
+      const s = (dateStr||"").trim();
+      if (!s) return null;
+      const parts = s.split("-").map(x => Number(x));
+      if (parts.length !== 3 || parts.some(x => !isFinite(x))) return null;
+      const [day, month, year] = parts;
       const fullYear = year < 100 ? 2000 + year : year;
       return new Date(fullYear, month - 1, day);
     }
 
-    function processLoans(data) {
-      console.log("Loan data:", data);
-      allLoansData = data.filter(row => row["Name"] && row["SN"]);
-      allLoansResult = allLoansData.map(row => {
-        const name = row["Name"];
-        const loanAmt = parseFloat(row["LOAN AMOUNT"]);
-        const hasLoan = row["LOAN AMOUNT"] && !isNaN(loanAmt);
-        let status = hasLoan ? "❌ Not Paid" : "❌ No Loan";
-        let emi = 0, repaid = 0, monthsPassed = 0, overdueMo = 0, overdueAmt = 0, balance = 0, months = 0;
-        const monthCols = Object.keys(row).filter(k => /^\w{3}-\d{2,4}$/.test(k));
-
-        if (hasLoan) {
-          const loanDate = parseDateDDMMYY(row["LOAN ISSUE DATE"]);
-          months = parseInt(row["AGREED TO REPAY IN (MONTHS)"]);
-          emi = Math.round(loanAmt / months);
-          repaid = monthCols.reduce((sum, col) => sum + (parseFloat(row[col]) || 0), 0);
-          monthsPassed = monthsBetween(loanDate, today);
-          const paidMonths = Math.floor(repaid / emi);
-          overdueMo = Math.max(0, monthsPassed - paidMonths);
-          overdueAmt = Math.max(0, (monthsPassed * emi) - repaid);
-          balance = loanAmt - repaid;
-
-          if (monthsPassed === 0) {
-            status = "⏳ Not Yet Due";
-          } else if (repaid >= monthsPassed * emi) {
-            status = repaid > monthsPassed * emi ? "💰 Overpaid" : "✅ On Time";
-          } else if (repaid > 0) {
-            status = "🟡 Partially Paid";
-          }
-        }
-
-        console.log(`Loan Status for ${name}: monthsPassed=${monthsPassed}, repaid=${repaid}, emi=${emi}, status=${status}`);
-
-        const output = {
-          SN: row["SN"],
-          Name: name,
-          "Loan Date": hasLoan ? row["LOAN ISSUE DATE"] : "",
-          "Loan Amt": hasLoan ? loanAmt : "",
-          "Months": hasLoan ? months : "",
-          "EMI": hasLoan ? emi : "",
-          "Repaid": hasLoan ? repaid : "",
-          "Overdue Amt": hasLoan ? overdueAmt : "",
-          "Overdue Mo": hasLoan ? overdueMo : "",
-          "Status": status,
-          "Balance": hasLoan ? balance : ""
-        };
-        monthCols.forEach(col => output[col] = row[col] || '');
-        return output;
-      });
-
-      const headers = allLoansResult.length > 0 ? Object.keys(allLoansResult[0]) : ["SN", "Name", "Loan Date", "Loan Amt", "Months", "EMI", "Repaid", "Overdue Amt", "Overdue Mo", "Status", "Balance", "Mar-25", "Apr-25", "May-25"];
-      buildTable("loansTable", headers, allLoansResult);
-
-      const totalLoanProvided = allLoansResult.reduce((sum, row) => sum + (parseFloat(row["Loan Amt"]) || 0), 0);
-      const totalLoanRepaid = allLoansResult.reduce((sum, row) => sum + (parseFloat(row["Repaid"]) || 0), 0);
-      document.getElementById('totalLoanProvided').textContent = totalLoanProvided.toFixed(2);
-      document.getElementById('totalLoanRepaid').textContent = totalLoanRepaid.toFixed(2);
-      return { totalLoanProvided, totalLoanRepaid };
+    function safeNum(v){
+      const x = Number((v ?? "").toString().trim());
+      return isFinite(x) ? x : 0;
     }
 
-    function processPayments(data) {
-      allPaymentsData = data.filter(row => row["Name"] && row["SN"]);
-      const headers = allPaymentsData.length > 0 ? Object.keys(allPaymentsData[0]) : ["SN", "Name", "Total Paid", "OB", "Mar-25", "Apr-25", "May-25"];
-      const numericCols = headers.filter(h => /^\w{3}-\d{2,4}$/.test(h) || h === "Total Paid" || h === "OB");
-      const totals = {};
-      console.log("Payments table data:", allPaymentsData, "Headers:", headers);
-      numericCols.forEach(col => {
-        totals[col] = allPaymentsData.reduce((sum, row) => sum + (parseFloat(row[col]) || 0), 0);
-      });
+    function showToast(title, msg, kind="info"){
+      const wrap = $("toastWrap");
+      const id = "t_" + Math.random().toString(16).slice(2);
+      const border = kind === "good" ? "rgba(29,185,84,.35)" :
+                    kind === "warn" ? "rgba(245,197,66,.40)" :
+                    kind === "bad"  ? "rgba(255,92,92,.40)" : "rgba(255,255,255,.18)";
+      const bg = kind === "good" ? "rgba(29,185,84,.10)" :
+                 kind === "warn" ? "rgba(245,197,66,.10)" :
+                 kind === "bad"  ? "rgba(255,92,92,.10)" : "rgba(255,255,255,.06)";
 
-      buildTable("paymentsTable", headers, allPaymentsData, totals);
-
-      const totalMembers = allPaymentsData.length;
-      const currentMonth = headers.filter(h => /^\w{3}-\d{2,4}$/.test(h)).slice(-1)[0] || "May-25";
-      const currentMonthPaid = totals[currentMonth] || 0;
-      const currentMonthExpected = totalMembers * 100;
-      const currentMonthOutstanding = currentMonthExpected - currentMonthPaid;
-      const totalMonthlyPaid = totals["Total Paid"];
-
-      const select = document.getElementById('memberSelect');
-      select.innerHTML = '<option value="">Select a Member</option>';
-      allPaymentsData.forEach(row => {
-        const option = document.createElement('option');
-        option.value = row["Name"];
-        option.textContent = row["Name"];
-        select.appendChild(option);
-      });
-
-      document.getElementById('totalMembers').textContent = totalMembers.toString();
-      document.getElementById('currentMonthExpected').textContent = currentMonthExpected.toFixed(2);
-      document.getElementById('currentMonthPaid').textContent = currentMonthPaid.toFixed(2);
-      document.getElementById('currentMonthOutstanding').textContent = currentMonthOutstanding.toFixed(2);
-      document.getElementById('totalMonthlyPaid').textContent = totalMonthlyPaid.toFixed(2);
-
-      return { totalMembers, currentMonthPaid, totalMonthlyPaid };
-    }
-
-    function displayMemberDetails() {
-      const select = document.getElementById('memberSelect');
-      const memberName = select.value;
-      const detailsDiv = document.getElementById('memberDetails');
-      if (!memberName) {
-        detailsDiv.innerHTML = '';
-        return;
-      }
-
-      const payment = allPaymentsData.find(row => row["Name"] === memberName) || {};
-      const loan = allLoansResult.find(row => row["Name"] === memberName || row["Name"] === memberName + "- (Pending Request)") || {};
-      const currentMonthKey = Object.keys(payment).filter(h => /^\w{3}-\d{2,4}$/.test(h)).slice(-1)[0] || "May-25";
-      const currentMonth = payment[currentMonthKey] || 0;
-      const monthAbbr = currentMonthKey.split('-')[0];
-      const monthNum = monthAbbr === 'Jan' ? 1 : monthAbbr === 'Feb' ? 2 : monthAbbr === 'Mar' ? 3 : monthAbbr === 'Apr' ? 4 : monthAbbr === 'May' ? 5 : monthAbbr === 'Jun' ? 6 : monthAbbr === 'Jul' ? 7 : monthAbbr === 'Aug' ? 8 : monthAbbr === 'Sep' ? 9 : monthAbbr === 'Oct' ? 10 : monthAbbr === 'Nov' ? 11 : 12;
-      const expectedPayment = monthNum * 100 + 200;
-      const totalPaid = parseFloat(payment["Total Paid"]) || 0;
-      const loanAmt = parseFloat(loan["Loan Amt"]) || 0;
-      const loanRepaid = parseFloat(loan["Repaid"]) || 0;
-      const loanBalance = loanAmt - loanRepaid;
-
-      detailsDiv.innerHTML = `
-        <p><strong>Name:</strong> ${memberName}</p>
-        <p><strong>Total Paid:</strong> AED ${payment["Total Paid"] || 0}</p>
-        <p><strong>Current Month Payment:</strong> AED ${currentMonth}</p>
-        <p><strong>Total Monthly Outstanding:</strong> AED ${(expectedPayment - totalPaid).toFixed(2)}</p>
-        <p><strong>Loan Amount:</strong> AED ${loanAmt.toFixed(2)}</p>
-        <p><strong>Loan Repaid:</strong> AED ${loanRepaid.toFixed(2)}</p>
-        <p><strong>Loan Balance:</strong> AED ${loanBalance.toFixed(2)}</p>
+      const el = document.createElement("div");
+      el.id = id;
+      el.className = "glass2 p-3 mb-2";
+      el.style.border = "1px solid " + border;
+      el.style.background = bg;
+      el.innerHTML = `
+        <div class="d-flex align-items-start justify-content-between gap-2">
+          <div>
+            <div class="fw-bold">${title}</div>
+            <div class="help">${msg}</div>
+          </div>
+          <button class="btn btn-soft btn-sm" aria-label="Close">✕</button>
+        </div>
       `;
+      el.querySelector("button").onclick = () => el.remove();
+      wrap.appendChild(el);
+      setTimeout(() => { if (document.getElementById(id)) el.remove(); }, 5000);
     }
 
-    function loadTables() {
-      parseCSV(paymentsFile, paymentsData => {
-        const paymentsMetrics = processPayments(paymentsData);
-        parseCSV(loanFile, loanData => {
-          const loanMetrics = processLoans(loanData);
-          const balance = paymentsMetrics.totalMonthlyPaid - loanMetrics.totalLoanProvided + loanMetrics.totalLoanRepaid;
-          document.getElementById('balance').textContent = balance.toFixed(2);
+    /***********************
+     * CSV LOAD
+     ***********************/
+    function parseCSV(file){
+      return new Promise((resolve, reject) => {
+        Papa.parse(file, {
+          header: true,
+          download: true,
+          skipEmptyLines: "greedy",
+          complete: (res) => resolve(res.data || []),
+          error: (err) => reject(err)
         });
       });
     }
 
-    function toggleLoans() {
-      const loansSection = document.getElementById('loansSection');
-      loansSection.classList.toggle('active');
+    async function loadAll(){
+      try{
+        $("warningsArea").style.display = "none";
+        $("warningsArea").innerHTML = "";
+
+        const [p, l] = await Promise.all([parseCSV(CSV_PAYMENTS), parseCSV(CSV_LOANS)]);
+        paymentsRows = normalizeRows(p).filter(r => (r.Name || r["Name"]) && String(r.Name || r["Name"]).trim() && (r.SN || r["SN"]));
+        loanRows = normalizeRows(l).filter(r => (r.Name || r["Name"]) && String(r.Name || r["Name"]).trim() && (r.SN || r["SN"]));
+
+        // Extract month columns
+        paymentsMonthKeys = sortMonthKeys(extractMonthKeys(paymentsRows));
+        loansMonthKeys = sortMonthKeys(extractMonthKeys(loanRows));
+        allMonthKeys = sortMonthKeys([...paymentsMonthKeys, ...loansMonthKeys]);
+
+        if (paymentsMonthKeys.length === 0){
+          warn(`payments.csv has no month columns like "Jan-26".`);
+        }
+        if (allMonthKeys.length === 0){
+          warn(`No month columns detected in either CSV. Please use headers like "Jan-26".`);
+        }
+
+        // Determine active month based on today and available columns
+        determineActiveMonth();
+
+        // Compute everything + render
+        computeAll();
+        renderAll();
+
+        // Populate member selectors
+        populateMemberSelects();
+
+        // Update last updated chip
+        $("lastUpdated").textContent = nowLabel();
+
+        showToast("Loaded", "CSV files loaded and dashboard refreshed.", "good");
+      }catch(e){
+        console.error(e);
+        showToast("Error", "Failed to load CSV files. Check file names/paths and GitHub Pages hosting.", "bad");
+        warn(`Load error: ${String(e)}`);
+      }
     }
 
-    loadTables();
+    function normalizeRows(rows){
+      // trims keys and values
+      return (rows || []).map((r) => {
+        const out = {};
+        Object.keys(r || {}).forEach((k) => {
+          const kk = (k || "").trim();
+          out[kk] = typeof r[k] === "string" ? r[k].trim() : r[k];
+        });
+        return out;
+      });
+    }
+
+    function extractMonthKeys(rows){
+      const keys = new Set();
+      for (const r of rows){
+        for (const k of Object.keys(r)){
+          if (isMonthKey(k)) keys.add(k.trim());
+        }
+      }
+      return [...keys];
+    }
+
+    function determineActiveMonth(){
+      const today = new Date();
+      // pick latest month <= today; if none, pick latest available
+      let candidate = null;
+      let candidateDate = null;
+
+      for (const k of allMonthKeys){
+        const d = monthKeyToDate(k);
+        if (!d) continue;
+        if (d <= new Date(today.getFullYear(), today.getMonth(), 1)){
+          candidate = k;
+          candidateDate = d;
+        }
+      }
+      if (!candidate && allMonthKeys.length){
+        candidate = allMonthKeys[allMonthKeys.length - 1];
+        candidateDate = monthKeyToDate(candidate);
+      }
+
+      activeMonthKey = candidate;
+      activeMonthDate = candidateDate;
+
+      $("activeMonthLabel").textContent = activeMonthKey || "—";
+      const dot = $("monthDot");
+      dot.className = "dot";
+      if (!activeMonthKey) dot.classList.add("bad");
+      else dot.classList.add("good");
+    }
+
+    function warn(msg){
+      const area = $("warningsArea");
+      area.style.display = "block";
+      const box = document.createElement("div");
+      box.className = "warn-box mb-2";
+      box.innerHTML = `<div class="fw-bold mb-1">Warning</div><div class="help">${msg}</div>`;
+      area.appendChild(box);
+    }
+
+    /***********************
+     * COMPUTATIONS
+     ***********************/
+    function computeAll(){
+      const members = paymentsRows.length;
+
+      // Expected this month
+      const expectedMonth = members * MONTHLY_CONTRIBUTION;
+
+      // Paid this month
+      let paidMonth = 0;
+      for (const r of paymentsRows){
+        paidMonth += safeNum(r[activeMonthKey]);
+      }
+      const outMonth = expectedMonth - paidMonth;
+
+      // Expected till date includes OB
+      const monthsTillCount = countMonthsTill(activeMonthKey, paymentsMonthKeys); // number of payment-month columns <= active
+      let expectedTill = 0;
+      let paidTill = 0;
+      let outTill = 0;
+
+      // Also detect mismatches in CSV Total Paid (informational)
+      const mismatches = [];
+
+      // Prepare payments computed rows
+      paymentsComputedRows = paymentsRows.map((r) => {
+        const name = r.Name;
+        const ob = safeNum(r.OB);
+        const paidMonthsSumTill = sumMonths(r, paymentsMonthKeys, activeMonthKey);
+        const paidMonthsSumAll = sumMonths(r, paymentsMonthKeys, null); // sum all payment month columns
+        const calcTotalPaid = ob + paidMonthsSumAll;
+
+        // Expected till date includes OB
+        const expTill = (monthsTillCount * MONTHLY_CONTRIBUTION) + ob;
+        const paidTillMember = ob + paidMonthsSumTill;
+        const outTillMember = expTill - paidTillMember;
+
+        expectedTill += expTill;
+        paidTill += paidTillMember;
+        outTill += outTillMember;
+
+        // Compare CSV Total Paid vs computed (optional check)
+        const csvTotalPaid = safeNum(r["Total Paid"]);
+        if (isFinite(csvTotalPaid) && Math.abs(csvTotalPaid - calcTotalPaid) > 0.01){
+          mismatches.push({ Name: name, csv: csvTotalPaid, calc: calcTotalPaid });
+        }
+
+        return { ...r, "__calcTotalPaid": calcTotalPaid };
+      });
+
+      // Loans computed
+      const loansAgg = computeLoans();
+
+      // Fund balance
+      const fundBalance = paidTill - loansAgg.totalLoanProvided + loansAgg.totalLoanRepaid;
+
+      computed = {
+        members,
+        expectedMonth,
+        paidMonth,
+        outMonth,
+        expectedTill,
+        paidTill,
+        outTill,
+        totalLoanProvided: loansAgg.totalLoanProvided,
+        totalLoanRepaid: loansAgg.totalLoanRepaid,
+        totalLoanOutstanding: loansAgg.totalLoanOutstanding,
+        fundBalance
+      };
+
+      // Warnings for mismatches
+      if (mismatches.length){
+        warn(`Some members have "Total Paid" in payments.csv that does not match calculated total (OB + sum of all month columns). This is fine, but you may want to correct it. Example: ${mismatches[0].Name} (CSV ${mismatches[0].csv}, Calc ${mismatches[0].calc.toFixed(2)}).`);
+      }
+    }
+
+    function countMonthsTill(activeKey, monthKeys){
+      if (!activeKey) return 0;
+      const ad = monthKeyToDate(activeKey);
+      if (!ad) return 0;
+      return monthKeys.filter(k => {
+        const d = monthKeyToDate(k);
+        return d && d <= ad;
+      }).length;
+    }
+
+    function sumMonths(row, monthKeys, upToKey=null){
+      let limitDate = null;
+      if (upToKey){
+        limitDate = monthKeyToDate(upToKey);
+      }
+      let sum = 0;
+      for (const k of monthKeys){
+        const d = monthKeyToDate(k);
+        if (limitDate && d && d > limitDate) continue;
+        sum += safeNum(row[k]);
+      }
+      return sum;
+    }
+
+    function computeLoans(){
+      loansComputedRows = [];
+
+      let totalLoanProvided = 0;
+      let totalLoanRepaid = 0;
+      let totalLoanOutstanding = 0;
+
+      for (const r of loanRows){
+        const name = r.Name;
+        const loanAmt = safeNum(r["LOAN AMOUNT"]);
+        const months = safeNum(r["AGREED TO REPAY IN (MONTHS)"]);
+        const hasLoan = loanAmt > 0 && months > 0;
+
+        const loanDate = parseDateDDMMYY(r["LOAN ISSUE DATE"]);
+        const repaid = sumMonths(r, loansMonthKeys, null); // sum all month columns in Loan.csv
+        const balance = hasLoan ? (loanAmt - repaid) : 0;
+
+        let emi = hasLoan ? (loanAmt / months) : 0;
+        emi = Number(emi.toFixed(2));
+
+        let monthsPassed = 0;
+        if (hasLoan && loanDate && activeMonthDate){
+          monthsPassed = monthsBetween(new Date(loanDate.getFullYear(), loanDate.getMonth(), 1), activeMonthDate);
+        }
+
+        const expectedTill = hasLoan ? Number((monthsPassed * emi).toFixed(2)) : 0;
+        const overdueAmt = hasLoan ? Math.max(0, Number((expectedTill - repaid).toFixed(2))) : 0;
+
+        let status = "No Loan";
+        let badge = "badge-soft";
+        if (hasLoan){
+          if (repaid >= loanAmt - 0.009){
+            status = "Cleared";
+            badge = "badge-soft good";
+          } else if (monthsPassed === 0){
+            status = "Not Yet Due";
+            badge = "badge-soft";
+          } else if (repaid >= expectedTill - 0.009){
+            status = "On Time";
+            badge = "badge-soft good";
+          } else if (repaid > 0){
+            status = "Overdue";
+            badge = "badge-soft bad";
+          } else {
+            status = "Overdue";
+            badge = "badge-soft bad";
+          }
+        }
+
+        if (hasLoan){
+          totalLoanProvided += loanAmt;
+          totalLoanRepaid += repaid;
+          totalLoanOutstanding += Math.max(0, balance);
+        }
+
+        loansComputedRows.push({
+          SN: r.SN,
+          Name: name,
+          "Loan Date": hasLoan ? (r["LOAN ISSUE DATE"] || "") : "",
+          "Loan Amount": hasLoan ? loanAmt : "",
+          "Months": hasLoan ? months : "",
+          "EMI": hasLoan ? emi : "",
+          "Repaid": hasLoan ? repaid : "",
+          "Expected Till Date": hasLoan ? expectedTill : "",
+          "Overdue Amount": hasLoan ? overdueAmt : "",
+          "Balance": hasLoan ? balance : "",
+          "Status": `<span class="${badge}"><span class="dot ${badge.includes("good")?"good":badge.includes("bad")?"bad":"warn"}"></span>${status}</span>`,
+          "__rawStatus": status,
+          "__row": r
+        });
+      }
+
+      // Sort loans by status severity then name
+      const severity = (s) => s === "Overdue" ? 0 : s === "On Time" ? 1 : s === "Not Yet Due" ? 2 : s === "Cleared" ? 3 : 4;
+      loansComputedRows.sort((a,b) => {
+        const sa = severity(a.__rawStatus), sb = severity(b.__rawStatus);
+        if (sa !== sb) return sa - sb;
+        return String(a.Name).localeCompare(String(b.Name));
+      });
+
+      return { totalLoanProvided, totalLoanRepaid, totalLoanOutstanding };
+    }
+
+    /***********************
+     * RENDER
+     ***********************/
+    function renderAll(){
+      // KPIs
+      $("kpiMembers").textContent = computed.members;
+      $("kpiExpectedMonth").textContent = toMoney(computed.expectedMonth, 0);
+      $("kpiPaidMonth").textContent = toMoney(computed.paidMonth, 0);
+      $("kpiOutMonth").textContent = toMoney(computed.outMonth, 0);
+
+      $("kpiPaidTill").textContent = toMoney(computed.paidTill, 2);
+      $("kpiOutTill").textContent = toMoney(computed.outTill, 2);
+
+      $("kpiLoanOutstanding").textContent = toMoney(computed.totalLoanOutstanding, 2);
+      $("kpiFundBalance").textContent = toMoney(computed.fundBalance, 2);
+
+      // Set month dot color based on month outstanding
+      const mdot = $("monthDot");
+      mdot.className = "dot";
+      if (!activeMonthKey) mdot.classList.add("bad");
+      else if (computed.outMonth <= 0) mdot.classList.add("good");
+      else if (computed.outMonth < computed.expectedMonth * 0.2) mdot.classList.add("warn");
+      else mdot.classList.add("bad");
+
+      // Payments table
+      renderPaymentsTable();
+
+      // Loans table
+      renderLoansTable();
+    }
+
+    function renderPaymentsTable(){
+      const table = $("paymentsTable");
+      table.innerHTML = "";
+
+      if (!paymentsRows.length){
+        table.innerHTML = `<tbody><tr><td class="p-3 muted">No payments data found.</td></tr></tbody>`;
+        return;
+      }
+
+      // Build headers
+      const baseCols = ["SN", "Name", "OB", "Total Paid"];
+      const monthCols = paymentsMonthKeys;
+      const headers = [...baseCols, ...monthCols];
+
+      const thead = document.createElement("thead");
+      const trh = document.createElement("tr");
+      for (const h of headers){
+        const th = document.createElement("th");
+        th.textContent = h;
+        if (h === "Name") th.classList.add("sticky-name");
+        if (h === activeMonthKey) th.classList.add("month-highlight");
+        trh.appendChild(th);
+      }
+      thead.appendChild(trh);
+      table.appendChild(thead);
+
+      const tbody = document.createElement("tbody");
+
+      // Totals
+      const totals = {};
+      for (const h of headers){
+        totals[h] = 0;
+      }
+
+      // rows
+      const sorted = [...paymentsRows].sort((a,b) => String(a.Name).localeCompare(String(b.Name)));
+
+      for (const r of sorted){
+        const tr = document.createElement("tr");
+
+        for (const h of headers){
+          const td = document.createElement(h === "Name" ? "th" : "td");
+          if (h === "Name") td.classList.add("sticky-name");
+
+          let val = r[h];
+
+          // Show computed Total Paid (we still show CSV value, but computed is used for admin/export)
+          if (h === "Total Paid"){
+            const found = paymentsComputedRows.find(x => x.Name === r.Name);
+            const calc = found ? found.__calcTotalPaid : safeNum(r["Total Paid"]);
+            val = calc.toFixed(2);
+            totals[h] += calc;
+          } else if (h === "OB"){
+            const ob = safeNum(r.OB);
+            val = ob.toFixed(2);
+            totals[h] += ob;
+          } else if (isMonthKey(h)){
+            const x = safeNum(r[h]);
+            val = x ? x.toFixed(0) : "";
+            totals[h] += x;
+          } else if (h === "SN"){
+            val = r.SN || "";
+          } else if (h === "Name"){
+            val = r.Name || "";
+          }
+
+          td.textContent = val ?? "";
+          if (h === activeMonthKey) td.classList.add("month-highlight");
+          tr.appendChild(td);
+        }
+
+        tbody.appendChild(tr);
+      }
+
+      // totals row
+      const tfoot = document.createElement("tfoot");
+      const trf = document.createElement("tr");
+      for (const h of headers){
+        const td = document.createElement(h === "Name" ? "th" : "td");
+        if (h === "Name") {
+          td.classList.add("sticky-name");
+          td.textContent = "TOTAL";
+        } else if (h === "SN"){
+          td.textContent = "";
+        } else if (h === "Total Paid" || h === "OB"){
+          td.textContent = totals[h].toFixed(2);
+        } else if (isMonthKey(h)){
+          td.textContent = totals[h] ? totals[h].toFixed(0) : "";
+        } else {
+          td.textContent = "";
+        }
+        if (h === activeMonthKey) td.classList.add("month-highlight");
+        trf.appendChild(td);
+      }
+      tfoot.appendChild(trf);
+
+      table.appendChild(tbody);
+      table.appendChild(tfoot);
+    }
+
+    function renderLoansTable(){
+      const table = $("loansTable");
+      table.innerHTML = "";
+
+      if (!loanRows.length){
+        table.innerHTML = `<tbody><tr><td class="p-3 muted">No loan data found.</td></tr></tbody>`;
+        return;
+      }
+
+      const headers = ["SN","Name","Loan Date","Loan Amount","Months","EMI","Repaid","Expected Till Date","Overdue Amount","Balance","Status"];
+
+      const thead = document.createElement("thead");
+      const trh = document.createElement("tr");
+      for (const h of headers){
+        const th = document.createElement("th");
+        th.textContent = h;
+        if (h === "Name") th.classList.add("sticky-name");
+        trh.appendChild(th);
+      }
+      thead.appendChild(trh);
+      table.appendChild(thead);
+
+      const tbody = document.createElement("tbody");
+
+      for (const r of loansComputedRows){
+        const tr = document.createElement("tr");
+        for (const h of headers){
+          const td = document.createElement(h === "Name" ? "th" : "td");
+          if (h === "Name") td.classList.add("sticky-name");
+
+          let v = r[h];
+          if (h === "Status"){
+            td.innerHTML = v;
+          } else if (["Loan Amount","EMI","Repaid","Expected Till Date","Overdue Amount","Balance"].includes(h) && v !== ""){
+            td.textContent = Number(v).toFixed(h==="EMI"?2:2);
+          } else {
+            td.textContent = v ?? "";
+          }
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      }
+
+      table.appendChild(tbody);
+    }
+
+    /***********************
+     * MEMBER QUICK VIEW
+     ***********************/
+    function populateMemberSelects(){
+      const select = $("memberSelect");
+      select.innerHTML = `<option value="">Select member…</option>`;
+      const adminMember = $("adminMember");
+      adminMember.innerHTML = "";
+
+      const names = [...paymentsRows.map(r => r.Name)].sort((a,b)=>String(a).localeCompare(String(b)));
+      for (const n of names){
+        const opt = document.createElement("option");
+        opt.value = n;
+        opt.textContent = n;
+        select.appendChild(opt);
+
+        const opt2 = document.createElement("option");
+        opt2.value = n;
+        opt2.textContent = n;
+        adminMember.appendChild(opt2);
+      }
+
+      // Months in admin: union
+      const adminMonth = $("adminMonth");
+      adminMonth.innerHTML = "";
+      for (const k of allMonthKeys){
+        const opt = document.createElement("option");
+        opt.value = k;
+        opt.textContent = k + (k === activeMonthKey ? " (active)" : "");
+        adminMonth.appendChild(opt);
+      }
+      if (activeMonthKey) adminMonth.value = activeMonthKey;
+
+      select.onchange = () => renderMemberCard(select.value);
+      renderMemberCard(select.value);
+    }
+
+    function renderMemberCard(name){
+      const card = $("memberCard");
+      if (!name){
+        card.innerHTML = `<div class="muted">Pick a member to see details.</div>`;
+        return;
+      }
+
+      const p = paymentsRows.find(r => r.Name === name);
+      const pCalc = paymentsComputedRows.find(r => r.Name === name);
+      const l = loansComputedRows.find(r => r.Name === name);
+
+      const ob = p ? safeNum(p.OB) : 0;
+      const monthsTillCount = countMonthsTill(activeMonthKey, paymentsMonthKeys);
+      const expectedTill = (monthsTillCount * MONTHLY_CONTRIBUTION) + ob;
+
+      const paidTillMonths = p ? sumMonths(p, paymentsMonthKeys, activeMonthKey) : 0;
+      const paidTill = ob + paidTillMonths;
+      const outstanding = expectedTill - paidTill;
+
+      const currentMonthPaid = p ? safeNum(p[activeMonthKey]) : 0;
+
+      // Loan summary
+      const hasLoan = l && l["Loan Amount"] !== "";
+      const loanAmt = hasLoan ? safeNum(l["Loan Amount"]) : 0;
+      const loanRepaid = hasLoan ? safeNum(l["Repaid"]) : 0;
+      const loanBalance = hasLoan ? safeNum(l["Balance"]) : 0;
+
+      let loanBadge = `<span class="badge-soft"><span class="dot"></span>No Loan</span>`;
+      if (hasLoan){
+        const s = l.__rawStatus || "Active";
+        if (s === "On Time" || s === "Cleared") loanBadge = `<span class="badge-soft good"><span class="dot good"></span>${s}</span>`;
+        else if (s === "Not Yet Due") loanBadge = `<span class="badge-soft"><span class="dot warn"></span>${s}</span>`;
+        else loanBadge = `<span class="badge-soft bad"><span class="dot bad"></span>${s}</span>`;
+      }
+
+      const totalPaidCalc = pCalc ? pCalc.__calcTotalPaid : (p ? safeNum(p["Total Paid"]) : 0);
+
+      const outClass = outstanding <= 0 ? "good" : outstanding < MONTHLY_CONTRIBUTION ? "warn" : "bad";
+      const outBadge = `<span class="badge-soft ${outClass}"><span class="dot ${outClass}"></span>Outstanding: ${CURRENCY} ${toMoney(outstanding,2)}</span>`;
+
+      card.innerHTML = `
+        <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
+          <div>
+            <div class="fw-bold" style="font-size:1.05rem;">${name}</div>
+            <div class="help">Active month: <strong>${activeMonthKey || "—"}</strong> • Current month paid: <strong>${CURRENCY} ${toMoney(currentMonthPaid,0)}</strong></div>
+          </div>
+          <div class="d-flex gap-2 flex-wrap">
+            ${outBadge}
+            ${loanBadge}
+          </div>
+        </div>
+
+        <div class="row g-2 mt-3">
+          <div class="col-md-4">
+            <div class="glass2 p-3">
+              <div class="muted">Expected till date (incl. OB)</div>
+              <div class="fw-bold mt-1">${CURRENCY} ${toMoney(expectedTill,2)}</div>
+              <div class="help">OB: ${CURRENCY} ${toMoney(ob,2)}</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="glass2 p-3">
+              <div class="muted">Paid till date (incl. OB)</div>
+              <div class="fw-bold mt-1">${CURRENCY} ${toMoney(paidTill,2)}</div>
+              <div class="help">Calculated total paid (all months): ${CURRENCY} ${toMoney(totalPaidCalc,2)}</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="glass2 p-3">
+              <div class="muted">Loan summary</div>
+              <div class="fw-bold mt-1">${hasLoan ? `${CURRENCY} ${toMoney(loanBalance,2)} balance` : "—"}</div>
+              <div class="help">${hasLoan ? `Loan: ${CURRENCY} ${toMoney(loanAmt,2)} • Repaid: ${CURRENCY} ${toMoney(loanRepaid,2)}` : "No active loan record"}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    /***********************
+     * ADMIN (OBFUSCATED PASSWORD GATE)
+     ***********************/
+    function obfMinutePass(){
+      // Password target: DDMMYYHHMM (local time), but obfuscated:
+      // - split pieces
+      // - reverse segment
+      // - decoy ops
+      // - reassemble
+      const d = new Date();
+      const pad = (n) => String(n).padStart(2,"0");
+
+      const dd = pad(d.getDate());
+      const mm = pad(d.getMonth()+1);
+      const yy = String(d.getFullYear()).slice(-2);
+      const hh = pad(d.getHours());
+      const mi = pad(d.getMinutes());
+
+      // decoy arrays & ops
+      const junk = ["x","7","k","Q","0","m","9","z"];
+      const spin = (s) => s.split("").reverse().join("");
+      const t1 = dd + mm;
+      const t2 = yy + hh;
+      const t3 = mi;
+
+      // pretend mixing
+      const a = spin(t2);      // hhyy reversed
+      const b = spin(t1);      // mmdd reversed
+      const c = t3;            // minutes
+      const noise = junk[(d.getSeconds() % junk.length)];
+
+      // reconstruct back to DDMMYYHHMM without plainly writing it
+      // b is mmdd, so spin(b) => ddmm ; a is hhyy, spin(a)=> yyhh
+      const ddmm = spin(b);
+      const yyhh = spin(a);
+      const out = (ddmm + yyhh + c).replace(noise, ""); // noise is not present; decoy line
+
+      return out; // DDMMYYHHMM
+    }
+
+    function verifyAdmin(pass){
+      const p = (pass||"").trim();
+      // Obfuscated comparison
+      const real = obfMinutePass();
+      const mix = (s) => (s.split("").map((ch,i)=> String.fromCharCode(ch.charCodeAt(0) ^ (i%3))).join(""));
+      // Compare after symmetric transform (harder to eyeball)
+      return mix(p) === mix(real);
+    }
+
+    /***********************
+     * ADMIN EDITING + CSV DOWNLOAD
+     ***********************/
+    function setUnsaved(on){
+      changes.touched = !!on;
+      $("unsavedBadge").style.display = changes.touched ? "inline-flex" : "none";
+    }
+
+    function getMemberRowPayments(name){
+      return paymentsRows.find(r => r.Name === name);
+    }
+
+    function getMemberRowLoans(name){
+      return loanRows.find(r => r.Name === name);
+    }
+
+    function ensureMonthColumn(rows, key){
+      // Make sure key exists for every row (for CSV export consistency)
+      if (!isMonthKey(key)) return;
+      for (const r of rows){
+        if (!(key in r)) r[key] = "";
+      }
+    }
+
+    function applyAdminChange(){
+      const name = $("adminMember").value;
+      const type = $("adminType").value;
+      const mkey = $("adminMonth").value;
+      const amtRaw = $("adminAmount").value;
+      const amt = Number(String(amtRaw).replace(/,/g,"").trim());
+
+      if (!name){
+        showToast("Admin", "Please select a member.", "warn");
+        return;
+      }
+      if (!isMonthKey(mkey)){
+        showToast("Admin", "Invalid month key. Use format like Jan-26.", "bad");
+        return;
+      }
+      if (!isFinite(amt) || amt < 0){
+        showToast("Admin", "Enter a valid amount (0 or more).", "warn");
+        return;
+      }
+
+      if (type === "payment"){
+        // Update payments.csv month value
+        let row = getMemberRowPayments(name);
+        if (!row){
+          showToast("Admin", "Member not found in payments.csv.", "bad");
+          return;
+        }
+
+        // Ensure month column exists everywhere
+        ensureMonthColumn(paymentsRows, mkey);
+        if (!paymentsMonthKeys.includes(mkey)) {
+          paymentsMonthKeys = sortMonthKeys([...paymentsMonthKeys, mkey]);
+          allMonthKeys = sortMonthKeys([...allMonthKeys, mkey]);
+        }
+
+        row[mkey] = amt ? String(amt) : "";
+
+        // Recompute Total Paid column to keep it consistent in exported CSV
+        const ob = safeNum(row.OB);
+        const totalMonths = sumMonths(row, paymentsMonthKeys, null);
+        row["Total Paid"] = (ob + totalMonths).toFixed(2);
+
+        setUnsaved(true);
+        showToast("Applied", `${name} • Payment • ${mkey} = ${amt}`, "good");
+      }
+
+      if (type === "loanrepay"){
+        // Update Loan.csv month value (repayment entry)
+        let row = getMemberRowLoans(name);
+        if (!row){
+          // Create a placeholder row if missing
+          const nextSN = computeNextSN(loanRows);
+          row = {
+            SN: String(nextSN),
+            Name: name,
+            "LOAN ISSUE DATE": "",
+            "LOAN AMOUNT": "",
+            "AGREED TO REPAY IN (MONTHS)": ""
+          };
+          loanRows.push(row);
+        }
+
+        ensureMonthColumn(loanRows, mkey);
+        if (!loansMonthKeys.includes(mkey)){
+          loansMonthKeys = sortMonthKeys([...loansMonthKeys, mkey]);
+          allMonthKeys = sortMonthKeys([...allMonthKeys, mkey]);
+        }
+
+        row[mkey] = amt ? String(amt) : "";
+
+        setUnsaved(true);
+        showToast("Applied", `${name} • Loan repayment • ${mkey} = ${amt}`, "good");
+      }
+
+      // Refresh everything after a change
+      determineActiveMonth();
+      computeAll();
+      renderAll();
+      populateMemberSelects();
+
+      updateAdminPreview();
+    }
+
+    function computeNextSN(rows){
+      let max = 0;
+      for (const r of rows){
+        const n = Number(r.SN);
+        if (isFinite(n)) max = Math.max(max, n);
+      }
+      return max + 1;
+    }
+
+    function discardAdminChanges(){
+      // simplest: reload from disk
+      setUnsaved(false);
+      $("adminAmount").value = "";
+      $("adminNote").value = "";
+      showToast("Discarded", "Changes discarded by reloading CSV files.", "warn");
+      loadAll();
+    }
+
+    function downloadCSVs(){
+      if (!changes.touched){
+        showToast("Nothing to save", "No changes detected. Apply a change first.", "warn");
+        return;
+      }
+
+      // Ensure month columns exist across rows (stable export)
+      for (const k of paymentsMonthKeys) ensureMonthColumn(paymentsRows, k);
+      for (const k of loansMonthKeys) ensureMonthColumn(loanRows, k);
+
+      // Export payments: keep base columns first, then months
+      const paymentsBase = ["SN","Name","Total Paid","OB"];
+      const paymentsHeaders = [...paymentsBase, ...paymentsMonthKeys];
+      const paymentsOut = paymentsRows
+        .slice()
+        .sort((a,b) => String(a.Name).localeCompare(String(b.Name)))
+        .map(r => pickColumns(r, paymentsHeaders));
+
+      // Export loans: keep schema columns first, then months
+      const loansBase = ["SN","Name","LOAN ISSUE DATE","LOAN AMOUNT","AGREED TO REPAY IN (MONTHS)"];
+      const loansHeaders = [...loansBase, ...loansMonthKeys];
+      const loansOut = loanRows
+        .slice()
+        .sort((a,b) => String(a.Name).localeCompare(String(b.Name)))
+        .map(r => pickColumns(r, loansHeaders));
+
+      // Build CSV strings
+      const paymentsCsv = Papa.unparse(paymentsOut, { columns: paymentsHeaders });
+      const loansCsv = Papa.unparse(loansOut, { columns: loansHeaders });
+
+      // Download
+      downloadTextFile(paymentsCsv, "payments.csv");
+      downloadTextFile(loansCsv, "Loan.csv");
+
+      setUnsaved(false);
+      showToast("Downloaded", "Updated payments.csv and Loan.csv downloaded. Commit them via GitHub Desktop.", "good");
+    }
+
+    function pickColumns(row, headers){
+      const out = {};
+      for (const h of headers){
+        out[h] = (row[h] ?? "");
+      }
+      return out;
+    }
+
+    function downloadTextFile(text, filename){
+      const blob = new Blob([text], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function updateAdminPreview(){
+      const name = $("adminMember").value;
+      const type = $("adminType").value;
+      const mkey = $("adminMonth").value;
+      const amt = $("adminAmount").value;
+
+      const typeLabel = type === "payment" ? "Monthly Payment" : "Loan Repayment";
+      const note = $("adminNote").value ? ` • Note: ${$("adminNote").value}` : "";
+
+      $("adminPreview").textContent =
+        (name && mkey)
+          ? `${name} • ${typeLabel} • ${mkey} = ${amt || "—"}${note}`
+          : "Select member/type/month and enter amount.";
+    }
+
+    /***********************
+     * EVENTS
+     ***********************/
+    document.addEventListener("DOMContentLoaded", () => {
+      $("btnReload").onclick = () => loadAll();
+
+      $("btnToggleLoans").onclick = () => {
+        const wrap = $("loansWrap");
+        const isOpen = wrap.style.display !== "none";
+        wrap.style.display = isOpen ? "none" : "block";
+        $("btnToggleLoans").textContent = isOpen ? "Show Loans" : "Hide Loans";
+      };
+
+      // Admin open
+      const loginModal = new bootstrap.Modal(document.getElementById("adminLoginModal"));
+      const panelModal = new bootstrap.Modal(document.getElementById("adminPanelModal"));
+
+      $("adminOpen").onclick = (e) => {
+        e.preventDefault();
+        $("adminPass").value = "";
+        loginModal.show();
+      };
+
+      $("btnAdminLogin").onclick = () => {
+        const pass = $("adminPass").value;
+        if (verifyAdmin(pass)){
+          loginModal.hide();
+          updateAdminPreview();
+          panelModal.show();
+          showToast("Admin unlocked", "You can now edit values and download CSVs.", "good");
+        } else {
+          showToast("Wrong password", "Password is incorrect for this minute.", "bad");
+        }
+      };
+
+      // Admin panel events
+      ["adminMember","adminType","adminMonth","adminAmount","adminNote"].forEach(id => {
+        $(id).addEventListener("input", updateAdminPreview);
+        $(id).addEventListener("change", updateAdminPreview);
+      });
+
+      $("btnApplyChange").onclick = applyAdminChange;
+      $("btnDownloadCsv").onclick = downloadCSVs;
+      $("btnDiscardChanges").onclick = discardAdminChanges;
+
+      // Initial load
+      loadAll();
+    });
   </script>
 </body>
 </html>
