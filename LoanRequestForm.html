@@ -1,631 +1,344 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Avadhi Nidhi Loan Request</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <style>
-    :root {
-      --primary: #0066cc;
-      --light: #f4f8fc;
-      --accent: #eef4ff;
-      --border: #d6e2f1;
-      --shadow: rgba(0, 0, 0, 0.1);
-      --radius: 8px;
-      --error: #ffcccc;
-      --bg: #ffffff;
-      --text: #000000;
-    }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Avadhi Nidhi Loan Request</title>
 
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-      margin: 0;
-      padding: 20px;
-      -webkit-text-size-adjust: 100%; /* Prevent iOS font scaling issues */
-    }
+<!-- jsPDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-    body.dark {
-      --bg: #121212;
-      --text: #e0e0e0;
-      --light: #1f1f1f;
-      --accent: #2a2a2a;
-      --border: #444;
-      --shadow: rgba(255, 255, 255, 0.05);
-    }
+<style>
+:root{
+  --bg:#0b1220;
+  --card:#101a33;
+  --border:rgba(255,255,255,.15);
+  --primary:#6ea8fe;
+  --text:#ffffff;
+  --muted:#b5b5b5;
+  --error:#ff6b6b;
+  --radius:14px;
+  --shadow:0 12px 30px rgba(0,0,0,.35);
+}
 
-    form {
-      max-width: 750px;
-      background: var(--light);
-      margin: auto;
-      padding: 20px;
-      border-radius: var(--radius);
-      box-shadow: 0 5px 20px var(--shadow);
-    }
+body{
+  margin:0;
+  padding:20px;
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+}
 
-    h2 {
-      text-align: center;
-      color: var(--primary);
-    }
+form{
+  max-width:780px;
+  margin:auto;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:22px;
+  box-shadow:var(--shadow);
+}
 
-    label {
-      display: block;
-      margin-top: 12px;
-      font-weight: 600;
-    }
+h2{
+  text-align:center;
+  margin-bottom:10px;
+}
 
-    input, select, textarea {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      font-size: 14px;
-      background-color: var(--bg);
-      color: var(--text);
-      box-sizing: border-box;
-      -webkit-appearance: none; /* Normalize iOS inputs */
-    }
+label{
+  display:block;
+  margin-top:14px;
+  font-weight:600;
+}
 
-    .input-row {
-      display: flex;
-      gap: 10px;
-    }
+input,select{
+  width:100%;
+  padding:10px;
+  margin-top:4px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:#0b1220;
+  color:var(--text);
+  font-size:14px;
+}
 
-    .readonly {
-      background: #e9f1fc;
-    }
+.input-row{
+  display:flex;
+  gap:10px;
+}
 
-    .button-row {
-      display: flex;
-      gap: 10px;
-      margin-top: 20px;
-    }
+.readonly{
+  background:#121a2f;
+}
 
-    button {
-      flex: 1;
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 12px;
-      border-radius: var(--radius);
-      font-weight: bold;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent; /* Remove iOS tap highlight */
-    }
+small{
+  color:var(--muted);
+  display:block;
+  margin-top:6px;
+}
 
-    .hidden {
-      display: none;
-    }
+.error{
+  border-color:var(--error);
+}
 
-    .summary {
-      background: #fff9db;
-      border-left: 4px solid #f1c40f;
-      padding: 12px;
-      margin-top: 20px;
-      font-size: 0.95rem;
-      border-radius: var(--radius);
-    }
+.error-message{
+  color:var(--error);
+  font-size:12px;
+  margin-top:4px;
+}
 
-    canvas {
-      border: 1px solid var(--border);
-      background-color: #fff;
-      border-radius: var(--radius);
-      margin-top: 10px;
-      touch-action: none;
-      display: block;
-      width: 100%;
-      max-width: 300px;
-      height: 150px;
-    }
+.summary{
+  background:#0e1730;
+  border-left:4px solid var(--primary);
+  padding:12px;
+  margin-top:16px;
+  border-radius:10px;
+  white-space:pre-line;
+}
 
-    @media print {
-      .button-row, #darkToggle, .clear-signature-button {
-        display: none;
-      }
-    }
+canvas{
+  border:1px solid var(--border);
+  border-radius:10px;
+  margin-top:10px;
+  width:100%;
+  max-width:300px;
+  height:150px;
+  background:#fff;
+  touch-action:none;
+}
 
-    .error {
-      border-color: red;
-      background-color: var(--error);
-    }
+.button-row{
+  display:flex;
+  gap:10px;
+  margin-top:20px;
+  flex-wrap:wrap;
+}
 
-    .error-message {
-      color: red;
-      font-size: 12px;
-      margin-top: 4px;
-    }
+button{
+  flex:1;
+  padding:12px;
+  border:none;
+  border-radius:12px;
+  background:var(--primary);
+  color:#000;
+  font-weight:700;
+  cursor:pointer;
+}
 
-    @media only screen and (max-width: 600px) {
-      form {
-        padding: 15px;
-      }
-      button {
-        padding: 10px;
-        font-size: 14px;
-      }
-    }
-  </style>
+button.secondary{
+  background:#2a3558;
+  color:#fff;
+}
+
+.hidden{display:none}
+
+@media(max-width:600px){
+  button{font-size:14px}
+}
+</style>
 </head>
+
 <body>
-  <button id="darkToggle">Toggle Dark Mode</button>
-  <form id="loanForm">
-    <h2>Avadhi Nidhi Loan Request</h2>
-
-    <label>Request Date:</label>
-    <input type="text" id="requestDate" class="readonly" readonly>
-
-    <label>Applicant Name:</label>
-    <input type="text" id="name" required>
-
-    <label>Contact Number UAE:</label>
-    <div class="input-row">
-      <input type="text" value="+971" readonly style="max-width: 70px;">
-      <input type="tel" id="contactUAE" pattern="\\d{9}" maxlength="9" required>
-    </div>
-
-    <label>Contact Number India (optional):</label>
-    <div class="input-row">
-      <input type="text" value="+91" readonly style="max-width: 70px;">
-      <input type="tel" id="contactIndia" pattern="\\d{10}" maxlength="10">
-    </div>
-
-    <label>Requesting Loan Amount (AED, Max 2000):</label>
-    <input type="number" id="amount" step="100" required>
-    <div id="amountError" class="error-message hidden">Maximum allowed amount is 2000</div>
-
-    <label>Loan Required By Date:</label>
-    <input type="date" id="loanDate" required>
-
-    <label>Reason for Loan Request:</label>
-    <select id="reason" required>
-      <option value="">-- Select --</option>
-      <option value="Annual Leave">Annual Leave</option>
-      <option value="Emergency Leave">Emergency Leave</option>
-      <option value="Other">Other</option>
-    </select>
-
-    <div id="otherReasonDiv" class="hidden">
-      <label>Please specify:</label>
-      <input type="text" id="otherReason">
-    </div>
-
-    <label>Will be Paid Back in How Many Months (Max 5):</label>
-    <input type="number" id="months" max="5" min="1" required>
-
-    <label>Loan Repayment Starting Date:</label>
-    <input type="date" id="repayStart" required>
-
-    <label>Loan Repayment End Date:</label>
-    <input type="date" id="repayEnd" required>
-
-    <div class="summary" id="summaryMessage"></div>
-
-    <label>Draw Signature:</label>
-    <canvas id="signatureCanvas"></canvas>
-    <button type="button" class="clear-signature-button" onclick="clearSignature()">Clear Signature</button>
-
-    <div class="button-row">
-      <button type="button" onclick="downloadPDF()">Download PDF</button>
-      <button type="button" onclick="shareOnWhatsApp()">Share on WhatsApp</button>
-      <button type="button" onclick="window.print()">Print</button>
-      <button type="reset">Clear Form</button>
-    </div>
-  </form>
-
-  <script>
-    // Global variables for canvas
-    let signatureCanvas = null;
-    let ctx = null;
-    let drawing = false;
-    const { jsPDF } = window.jspdf;
-
-    // Canvas setup
-    function setCanvasSize() {
-      try {
-        const dpr = window.devicePixelRatio || 1;
-        signatureCanvas.width = 300 * dpr;
-        signatureCanvas.height = 150 * dpr;
-        signatureCanvas.style.width = '300px';
-        signatureCanvas.style.height = '150px';
-        ctx.scale(dpr, dpr);
-        ctx.lineWidth = 2;
-        ctx.lineCap = 'round';
-        ctx.strokeStyle = '#000';
-        console.log('Canvas size set');
-      } catch (e) {
-        console.error('Canvas setup failed:', e);
-      }
-    }
-
-    // Clear signature
-    function clearSignature() {
-      try {
-        ctx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
-        setCanvasSize();
-        console.log('Signature cleared');
-      } catch (e) {
-        console.error('Clear signature error:', e);
-      }
-    }
-
-    // Generate PDF content
-    function generatePDFContent(doc, yOffset) {
-      const name = document.getElementById('name').value || 'N/A';
-      const requestDate = document.getElementById('requestDate').value || 'N/A';
-      const contactUAE = document.getElementById('contactUAE').value ? `+971${document.getElementById('contactUAE').value}` : 'N/A';
-      const contactIndia = document.getElementById('contactIndia').value ? `+91${document.getElementById('contactIndia').value}` : 'N/A';
-      const amount = document.getElementById('amount').value || 'N/A';
-      const loanDate = document.getElementById('loanDate').value || 'N/A';
-      const reason = document.getElementById('reason').value === 'Other' ? document.getElementById('otherReason').value : document.getElementById('reason').value || 'N/A';
-      const months = document.getElementById('months').value || 'N/A';
-      const repayStart = document.getElementById('repayStart').value || 'N/A';
-      const repayEnd = document.getElementById('repayEnd').value || 'N/A';
-      const summary = document.getElementById('summaryMessage').innerText || 'N/A';
-
-      // Add content
-      doc.setFontSize(16);
-      doc.setTextColor(0, 102, 204); // Primary color (#0066cc)
-      doc.text('Avadhi Nidhi Loan Request', 105, yOffset, { align: 'center' });
-      yOffset += 10;
-
-      doc.setFontSize(12);
-      doc.setTextColor(0, 0, 0);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Request Date:', 20, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(requestDate, 80, yOffset);
-      yOffset += 8;
-
-      doc.setFont('helvetica', 'bold');
-      doc.text('Applicant Name:', 20, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(name, 80, yOffset);
-      yOffset += 8;
-
-      doc.setFont('helvetica', 'bold');
-      doc.text('Contact Number UAE:', 20, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(contactUAE, 80, yOffset);
-      yOffset += 8;
-
-      doc.setFont('helvetica', 'bold');
-      doc.text('Contact Number India:', 20, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(contactIndia, 80, yOffset);
-      yOffset += 8;
-
-      doc.setFont('helvetica', 'bold');
-      doc.text('Loan Amount (AED):', 20, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(amount, 80, yOffset);
-      yOffset += 8;
-
-      doc.setFont('helvetica', 'bold');
-      doc.text('Loan Required By:', 20, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(loanDate, 80, yOffset);
-      yOffset += 8;
-
-      doc.setFont('helvetica', 'bold');
-      doc.text('Reason for Loan:', 20, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(reason, 80, yOffset);
-      yOffset += 8;
-
-      doc.setFont('helvetica', 'bold');
-      doc.text('Repayment Months:', 20, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(months, 80, yOffset);
-      yOffset += 8;
-
-      doc.setFont('helvetica', 'bold');
-      doc.text('Repayment Start:', 20, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(repayStart, 80, yOffset);
-      yOffset += 8;
-
-      doc.setFont('helvetica', 'bold');
-      doc.text('Repayment End:', 20, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(repayEnd, 80, yOffset);
-      yOffset += 12;
-
-      // Summary
-      doc.setFont('helvetica', 'bold');
-      doc.text('Summary:', 20, yOffset);
-      yOffset += 8;
-      doc.setFont('helvetica', 'normal');
-      const summaryLines = doc.splitTextToSize(summary, 170);
-      doc.text(summaryLines, 20, yOffset);
-      yOffset += summaryLines.length * 6 + 12;
-
-      return yOffset;
-    }
-
-    // Generate PDF document
-    function generatePDF() {
-      const doc = new jsPDF();
-      let yOffset = 20;
-
-      // Generate form content
-      yOffset = generatePDFContent(doc, yOffset);
-
-      // Add signature
-      const signatureData = signatureCanvas.toDataURL('image/png', 1.0);
-      doc.addImage(signatureData, 'PNG', 20, yOffset, 60, 30);
-      yOffset += 40;
-
-      return doc;
-    }
-
-    // Download PDF
-    function downloadPDF() {
-      try {
-        const doc = generatePDF();
-        const name = document.getElementById('name').value || 'Loan_Request';
-        const today = new Date().toISOString().split('T')[0];
-        doc.save(`${name}_${today}.pdf`);
-        console.log('PDF downloaded');
-      } catch (e) {
-        console.error('Download PDF error:', e);
-      }
-    }
-
-    // Share on WhatsApp
-    function shareOnWhatsApp() {
-      try {
-        console.log('Share on WhatsApp started');
-        const doc = generatePDF();
-        const name = document.getElementById('name').value || 'Loan_Request';
-        const today = new Date().toISOString().split('T')[0];
-        const filename = `${name}_${today}.pdf`;
-
-        const blob = doc.output('blob');
-        console.log('PDF blob created');
-
-        // Web Share API for mobile devices
-        if (navigator.share) {
-          console.log('Attempting Web Share API');
-          const file = new File([blob], filename, { type: 'application/pdf' });
-          navigator.share({
-            files: [file],
-            title: 'Loan Request PDF',
-            text: `Please find attached loan request PDF (${filename}).`
-          })
-          .then(() => {
-            console.log('Shared successfully via Web Share API');
-          })
-          .catch(err => {
-            console.error('Web Share API error:', err);
-            // Fallback: Open wa.me link
-            const url = URL.createObjectURL(blob);
-            console.log('Opening fallback WhatsApp link');
-            window.open(`https://wa.me/?text=Please find attached loan request PDF (${filename}). Download: ${url}`, '_blank');
-          });
-        } else {
-          // Fallback for desktop or non-supporting browsers
-          console.log('Web Share API not available, using fallback');
-          const url = URL.createObjectURL(blob);
-          window.open(`https://wa.me/?text=Please find attached loan request PDF (${filename}). Download: ${url}`, '_blank');
-          console.log('WhatsApp link opened');
-        }
-      } catch (e) {
-        console.error('Share on WhatsApp error:', e);
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      // Initialize elements
-      const repayStart = document.getElementById('repayStart');
-      const repayEnd = document.getElementById('repayEnd');
-      const loanDate = document.getElementById('loanDate');
-      const monthsInput = document.getElementById('months');
-      const reasonSelect = document.getElementById('reason');
-      const otherReasonDiv = document.getElementById('otherReasonDiv');
-      signatureCanvas = document.getElementById('signatureCanvas');
-      ctx = signatureCanvas.getContext('2d');
-      const amountInput = document.getElementById('amount');
-      const amountError = document.getElementById('amountError');
-      const form = document.getElementById('loanForm');
-
-      // Set request date
-      document.getElementById('requestDate').value = new Date().toISOString().split('T')[0];
-
-      // Canvas event handlers
-      setCanvasSize();
-
-      function getMousePos(event) {
-        const rect = signatureCanvas.getBoundingClientRect();
-        return {
-          x: event.clientX - rect.left,
-          y: event.clientY - rect.top
-        };
-      }
-
-      function getTouchPos(touch) {
-        const rect = signatureCanvas.getBoundingClientRect();
-        return {
-          x: touch.clientX - rect.left,
-          y: touch.clientY - rect.top
-        };
-      }
-
-      function startDrawing(pos) {
-        drawing = true;
-        ctx.beginPath();
-        ctx.moveTo(pos.x, pos.y);
-      }
-
-      function draw(pos) {
-        if (!drawing) return;
-        ctx.lineTo(pos.x, pos.y);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(pos.x, pos.y);
-      }
-
-      function stopDrawing() {
-        drawing = false;
-        ctx.beginPath();
-      }
-
-      signatureCanvas.addEventListener('mousedown', (e) => {
-        try {
-          const pos = getMousePos(e);
-          startDrawing(pos);
-        } catch (e) {
-          console.error('Mouse down error:', e);
-        }
-      });
-
-      signatureCanvas.addEventListener('mousemove', (e) => {
-        try {
-          const pos = getMousePos(e);
-          draw(pos);
-        } catch (e) {
-          console.error('Mouse move error:', e);
-        }
-      });
-
-      signatureCanvas.addEventListener('mouseup', stopDrawing);
-      signatureCanvas.addEventListener('mouseout', stopDrawing);
-
-      signatureCanvas.addEventListener('touchstart', (e) => {
-        try {
-          e.preventDefault();
-          const pos = getTouchPos(e.touches[0]);
-          startDrawing(pos);
-        } catch (e) {
-          console.error('Touch start error:', e);
-        }
-      });
-
-      signatureCanvas.addEventListener('touchmove', (e) => {
-        try {
-          e.preventDefault();
-          const pos = getTouchPos(e.touches[0]);
-          draw(pos);
-        } catch (e) {
-          console.error('Touch move error:', e);
-        }
-      });
-
-      signatureCanvas.addEventListener('touchend', stopDrawing);
-
-      // Form logic
-      function autoSetRepaymentDates() {
-        try {
-          const loanDateValue = new Date(loanDate.value);
-          const monthsToPay = parseInt(monthsInput.value);
-          if (!isNaN(loanDateValue.getTime()) && monthsToPay > 0) {
-            const startDate = new Date(loanDateValue);
-            startDate.setMonth(startDate.getMonth() + 2);
-            repayStart.valueAsDate = startDate;
-
-            const endDate = new Date(startDate);
-            endDate.setMonth(endDate.getMonth() + monthsToPay);
-            repayEnd.valueAsDate = endDate;
-          }
-        } catch (e) {
-          console.error('Auto set repayment dates error:', e);
-        }
-      }
-
-      function updateRepayEndFromStart() {
-        try {
-          const startDate = new Date(repayStart.value);
-          const months = parseInt(monthsInput.value);
-          if (!isNaN(startDate.getTime()) && months > 0) {
-            const endDate = new Date(startDate);
-            endDate.setMonth(endDate.getMonth() + months);
-            repayEnd.valueAsDate = endDate;
-            generateSummary();
-          }
-        } catch (e) {
-          console.error('Update repay end error:', e);
-        }
-      }
-
-      function generateSummary() {
-        try {
-          const applicant = document.getElementById('name').value;
-          const amount = document.getElementById('amount').value;
-          const reqDate = loanDate.value;
-          const reason = reasonSelect.value === 'Other' ? document.getElementById('otherReason').value : reasonSelect.value;
-          const endDate = repayEnd.value;
-
-          if (!amount || !reqDate || !endDate || !applicant || !reason) return;
-
-          const summary = `
-            Dear Avadhi Nidhi Committee,
-
-            I would like to request for a loan of AED ${amount} on ${reqDate}
-            for ${reason}.
-            I will repay the loan amount completely by ${endDate}.
-
-            Kindly approve my request.
-
-            Requested By
-            ${applicant}
-          `;
-          document.getElementById('summaryMessage').innerText = summary;
-        } catch (e) {
-          console.error('Generate summary error:', e);
-        }
-      }
-
-      amountInput.addEventListener('input', () => {
-        try {
-          if (parseInt(amountInput.value) > 2000) {
-            amountInput.classList.add('error');
-            amountError.classList.remove('hidden');
-          } else {
-            amountInput.classList.remove('error');
-            amountError.classList.add('hidden');
-          }
-          generateSummary();
-        } catch (e) {
-          console.error('Amount input error:', e);
-        }
-      });
-
-      repayStart.addEventListener('change', updateRepayEndFromStart);
-      monthsInput.addEventListener('input', () => {
-        autoSetRepaymentDates();
-        generateSummary();
-      });
-      reasonSelect.addEventListener('change', () => {
-        otherReasonDiv.classList.toggle('hidden', reasonSelect.value !== 'Other');
-        generateSummary();
-      });
-      loanDate.addEventListener('change', () => {
-        autoSetRepaymentDates();
-        generateSummary();
-      });
-
-      ['name', 'otherReason', 'repayEnd'].forEach(id => {
-        document.getElementById(id).addEventListener('input', generateSummary);
-      });
-
-      // Handle form reset
-      form.addEventListener('reset', () => {
-        try {
-          clearSignature();
-          document.getElementById('summaryMessage').innerHTML = '';
-          otherReasonDiv.classList.add('hidden');
-          console.log('Form reset');
-        } catch (e) {
-          console.error('Form reset error:', e);
-        }
-      });
-
-      // Dark mode toggle
-      document.getElementById('darkToggle').addEventListener('click', () => {
-        document.body.classList.toggle('dark');
-      });
-    });
-  </script>
+
+<form id="loanForm">
+<h2>Avadhi Nidhi Loan Request</h2>
+
+<label>Request Date</label>
+<input id="requestDate" class="readonly" readonly>
+
+<label>Applicant Name</label>
+<input id="name" required>
+
+<label>Contact Number (UAE)</label>
+<div class="input-row">
+  <input value="+971" readonly style="max-width:70px">
+  <input id="contactUAE" maxlength="9">
+</div>
+
+<label>Contact Number (India – optional)</label>
+<div class="input-row">
+  <input value="+91" readonly style="max-width:70px">
+  <input id="contactIndia" maxlength="10">
+</div>
+
+<label>Loan Amount (Max AED 2000)</label>
+<input type="number" id="amount" step="100" required>
+<div id="amountError" class="error-message hidden">Maximum allowed amount is 2000</div>
+
+<label>Loan Required By Date</label>
+<input type="date" id="loanDate" required>
+
+<label>Reason</label>
+<select id="reason" required>
+  <option value="">Select</option>
+  <option>Annual Leave</option>
+  <option>Emergency Leave</option>
+  <option>Other</option>
+</select>
+
+<div id="otherReasonDiv" class="hidden">
+  <label>Please specify</label>
+  <input id="otherReason">
+</div>
+
+<label>Repayment Months (Max 5)</label>
+<input type="number" id="months" min="1" max="5" required>
+
+<div id="emiPreview" class="summary hidden"></div>
+
+<label>Repayment Start Date</label>
+<input type="date" id="repayStart" required>
+
+<label>Repayment End Date</label>
+<input type="date" id="repayEnd" required>
+
+<small>ℹ Repayment starts after a 2-month grace period as per Avadhi Nidhi rules.</small>
+
+<div class="summary" id="summaryMessage"></div>
+
+<label>Signature</label>
+<canvas id="signatureCanvas"></canvas>
+<button type="button" class="secondary" onclick="clearSignature()">Clear Signature</button>
+
+<div class="button-row">
+  <button type="button" onclick="downloadPDF()">Download PDF</button>
+  <button type="button" class="secondary" onclick="shareOnWhatsApp()">Share on WhatsApp</button>
+  <button type="button" class="secondary" onclick="window.print()">Print</button>
+  <button type="reset" class="secondary">Clear</button>
+</div>
+</form>
+
+<script>
+const { jsPDF } = window.jspdf;
+let canvas,ctx,drawing=false;
+
+/* ---------- Canvas ---------- */
+function initCanvas(){
+  const dpr=window.devicePixelRatio||1;
+  ctx.setTransform(1,0,0,1,0,0);
+  canvas.width=300*dpr;
+  canvas.height=150*dpr;
+  ctx.scale(dpr,dpr);
+  ctx.lineWidth=2;
+  ctx.lineCap="round";
+  ctx.strokeStyle="#000";
+}
+
+function clearSignature(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  initCanvas();
+}
+
+function hasSignature(){
+  const d=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+  return d.some(v=>v!==0);
+}
+
+/* ---------- Validation ---------- */
+function validateForm(){
+  if(!name.value) return alert("Name required"),false;
+  if(amount.value>2000) return alert("Amount exceeds limit"),false;
+  if(months.value>5) return alert("Maximum 5 months allowed"),false;
+  if(reason.value==="Other" && !otherReason.value) return alert("Specify reason"),false;
+  if(!hasSignature()) return alert("Signature required"),false;
+  return true;
+}
+
+/* ---------- Logic ---------- */
+function updateEMI(){
+  if(amount.value && months.value){
+    const emi=(amount.value/months.value).toFixed(2);
+    emiPreview.innerText=`Estimated EMI: AED ${emi} × ${months.value} months`;
+    emiPreview.classList.remove("hidden");
+  }
+}
+
+function autoDates(){
+  if(!loanDate.value||!months.value) return;
+  const d=new Date(loanDate.value);
+  d.setMonth(d.getMonth()+2);
+  repayStart.valueAsDate=d;
+  const e=new Date(d);
+  e.setMonth(e.getMonth()+Number(months.value));
+  repayEnd.valueAsDate=e;
+}
+
+function generateSummary(){
+  if(!name.value||!amount.value||!repayEnd.value) return;
+  summaryMessage.innerText=
+`Dear Avadhi Nidhi Committee,
+
+I request a loan of AED ${amount.value} for ${reason.value==="Other"?otherReason.value:reason.value}.
+I will repay the loan fully by ${repayEnd.value}.
+
+Requested by
+${name.value}`;
+}
+
+/* ---------- PDF ---------- */
+function buildPDF(){
+  const doc=new jsPDF();
+  doc.text("Avadhi Nidhi Loan Request",105,20,{align:"center"});
+  doc.text(summaryMessage.innerText,20,40);
+  doc.addImage(canvas.toDataURL(),"PNG",20,120,60,30);
+  return doc;
+}
+
+function downloadPDF(){
+  if(!validateForm()) return;
+  const d=new Date();
+  const file=`AvadhiNidhi_LoanRequest_${name.value}_${String(d.getDate()).padStart(2,"0")}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getFullYear()).slice(-2)}.pdf`;
+  buildPDF().save(file);
+}
+
+function shareOnWhatsApp(){
+  if(!validateForm()) return;
+  const d=new Date();
+  const file=`AvadhiNidhi_LoanRequest_${name.value}_${String(d.getDate()).padStart(2,"0")}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getFullYear()).slice(-2)}.pdf`;
+  const blob=buildPDF().output("blob");
+  if(navigator.share){
+    navigator.share({files:[new File([blob],file,{type:"application/pdf"})]});
+  }else{
+    window.open(`https://wa.me/?text=Loan request PDF: ${file}`);
+  }
+}
+
+/* ---------- Init ---------- */
+document.addEventListener("DOMContentLoaded",()=>{
+  canvas=document.getElementById("signatureCanvas");
+  ctx=canvas.getContext("2d");
+  initCanvas();
+  requestDate.value=new Date().toISOString().split("T")[0];
+
+  canvas.addEventListener("mousedown",e=>{drawing=true;ctx.beginPath();ctx.moveTo(e.offsetX,e.offsetY)});
+  canvas.addEventListener("mousemove",e=>{if(drawing){ctx.lineTo(e.offsetX,e.offsetY);ctx.stroke()}});
+  canvas.addEventListener("mouseup",()=>drawing=false);
+  canvas.addEventListener("mouseout",()=>drawing=false);
+
+  canvas.addEventListener("touchstart",e=>{
+    e.preventDefault();
+    drawing=true;
+    const t=e.touches[0];
+    ctx.beginPath();
+    ctx.moveTo(t.clientX-canvas.offsetLeft,t.clientY-canvas.offsetTop);
+  });
+
+  canvas.addEventListener("touchmove",e=>{
+    e.preventDefault();
+    if(!drawing) return;
+    const t=e.touches[0];
+    ctx.lineTo(t.clientX-canvas.offsetLeft,t.clientY-canvas.offsetTop);
+    ctx.stroke();
+  });
+
+  canvas.addEventListener("touchend",()=>drawing=false);
+
+  amount.oninput=()=>{amountError.classList.toggle("hidden",amount.value<=2000);updateEMI();generateSummary()};
+  months.oninput=()=>{updateEMI();autoDates();generateSummary()};
+  loanDate.onchange=()=>{autoDates();generateSummary()};
+  repayEnd.onchange=generateSummary;
+  reason.onchange=()=>otherReasonDiv.classList.toggle("hidden",reason.value!=="Other");
+});
+</script>
+
 </body>
 </html>
