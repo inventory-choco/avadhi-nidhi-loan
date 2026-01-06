@@ -253,6 +253,36 @@
       z-index: 9999;
       width: min(420px, calc(100% - 32px));
     }
+
+    /* NEW: sort buttons */
+    .sortbar{
+      display:flex;
+      gap:8px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .sortbar .btn-soft{ padding: 8px 10px; border-radius: 999px; }
+    .sortbar .label{ color: var(--muted); font-size: .86rem; margin-right: 4px; }
+
+    /* NEW: snapshot icon */
+    .snap-btn{
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      width: 40px; height: 40px;
+      border-radius: 12px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      user-select: none;
+    }
+    .snap-btn:hover{ background: rgba(255,255,255,.10); border-color: rgba(255,255,255,.16); }
+
+    @media print{
+      #adminOpen, #btnReload, #btnToggleLoans, .sortbar, .snap-btn{ display:none !important; }
+    }
   </style>
 </head>
 
@@ -270,9 +300,10 @@
       </div>
 
       <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
-        <div class="chip" title="Auto from your browser time">
+        <!-- CHANGED: this is now CSV-based -->
+        <div class="chip" title="Derived from CSV content">
           <span class="dot"></span>
-          <span>Last updated: <strong id="lastUpdated">—</strong></span>
+          <span>Last data update: <strong id="lastUpdated">—</strong></span>
         </div>
 
         <a class="btn btn-primary" href="LoanRequestForm.html">Request for a Loan</a>
@@ -355,15 +386,21 @@
           <h2 class="mb-1">Member Quick View</h2>
           <div class="muted">Select a member to view expected, paid, outstanding, and loan status.</div>
         </div>
-        <div class="d-flex gap-2 flex-wrap">
+        <div class="d-flex gap-2 flex-wrap align-items-center">
           <select class="form-select" id="memberSelect" style="min-width: 260px;">
             <option value="">Select member…</option>
           </select>
+
+          <!-- NEW: snapshot camera -->
+          <div class="snap-btn" id="btnSnapshot" title="Download snapshot" aria-label="Download snapshot" style="opacity:.45; pointer-events:none;">
+            📸
+          </div>
         </div>
       </div>
 
-      <div class="mt-3 glass2 member-card" id="memberCard">
-        <div class="muted">Pick a member to see details.</div>
+      <!-- NEW: wrap member card for snapshot -->
+      <div class="mt-3 glass2 member-card" id="memberCardWrap">
+        <div class="muted" id="memberCard">Pick a member to see details.</div>
       </div>
     </div>
 
@@ -377,8 +414,12 @@
           <h2 class="mb-1">Payments</h2>
           <div class="muted">Totals row is calculated. Current month column is highlighted.</div>
         </div>
-        <div class="d-flex gap-2 flex-wrap">
-          <span class="chip"><span class="dot"></span><span>Contribution: <strong>AED 100</strong></span></span>
+
+        <!-- NEW: sort controls -->
+        <div class="sortbar">
+          <span class="label">Sort:</span>
+          <button class="btn btn-soft" id="paySortSN">SN ▲</button>
+          <button class="btn btn-soft" id="paySortName">Name</button>
         </div>
       </div>
 
@@ -396,8 +437,16 @@
           <h2 class="mb-1">Loans</h2>
           <div class="muted">Collapsed by default. EMI is exact to 2 decimals.</div>
         </div>
-        <div class="d-flex gap-2 flex-wrap">
+
+        <div class="d-flex gap-2 flex-wrap align-items-center">
           <button class="btn btn-soft" id="btnToggleLoans">Show Loans</button>
+
+          <!-- NEW: sort controls -->
+          <div class="sortbar">
+            <span class="label">Sort:</span>
+            <button class="btn btn-soft" id="loanSortSN">SN ▲</button>
+            <button class="btn btn-soft" id="loanSortName">Name</button>
+          </div>
         </div>
       </div>
 
@@ -521,6 +570,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- NEW: html2canvas for snapshots (PC + mobile) -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <script>
     /***********************
@@ -563,18 +614,18 @@
 
     let changes = { touched: false };
 
+    // NEW: cache-bust token so Chrome always fetches latest CSV.
+    // Updated every time loadAll() is called via "Reload CSV".
+    let cacheBuster = Date.now();
+
+    // NEW: sorting state (requested)
+    let paySort = { key: "SN", dir: 1 };   // dir: 1=asc, -1=desc
+    let loanSort = { key: "SN", dir: 1 };
+
     /***********************
      * SMALL UTILITIES
      ***********************/
     const $ = (id) => document.getElementById(id);
-
-    function nowLabel() {
-      const d = new Date();
-      const pad = (n) => String(n).padStart(2, "0");
-      const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-      const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-      return `${pad(d.getDate())} ${months[d.getMonth()]} ${d.getFullYear()} • ${pad(d.getHours())}:${pad(d.getMinutes())} (${days[d.getDay()]})`;
-    }
 
     function toMoney(n, dp=2){
       const x = Number(n);
@@ -594,12 +645,6 @@
       if (!(m in map) || !isFinite(yy)) return null;
       const fullYear = 2000 + yy;
       return new Date(fullYear, map[m], 1);
-    }
-
-    function dateToMonthKey(d){
-      const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-      const yy = String(d.getFullYear()).slice(-2);
-      return `${months[d.getMonth()]}-${yy}`;
     }
 
     function sortMonthKeys(keys){
@@ -665,8 +710,12 @@
      * CSV LOAD
      ***********************/
     function parseCSV(file){
+      // NEW: cache-busting query string to avoid Chrome stale cache
+      const sep = file.includes("?") ? "&" : "?";
+      const url = `${file}${sep}v=${cacheBuster}`;
+
       return new Promise((resolve, reject) => {
-        Papa.parse(file, {
+        Papa.parse(url, {
           header: true,
           download: true,
           skipEmptyLines: "greedy",
@@ -707,8 +756,8 @@
         // Populate member selectors
         populateMemberSelects();
 
-        // Update last updated chip
-        $("lastUpdated").textContent = nowLabel();
+        // NEW: CSV-based Last Updated label
+        updateLastDataUpdateLabel();
 
         showToast("Loaded", "CSV files loaded and dashboard refreshed.", "good");
       }catch(e){
@@ -776,6 +825,32 @@
       box.className = "warn-box mb-2";
       box.innerHTML = `<div class="fw-bold mb-1">Warning</div><div class="help">${msg}</div>`;
       area.appendChild(box);
+    }
+
+    // NEW: CSV-based last update (find latest month column that has any non-zero value)
+    function updateLastDataUpdateLabel(){
+      const monthKeys = allMonthKeys;
+      if (!monthKeys.length){
+        $("lastUpdated").textContent = "—";
+        return;
+      }
+
+      const hasValueInMonth = (rows, key) => {
+        for (const r of rows){
+          const v = safeNum(r[key]);
+          if (v !== 0) return true;
+        }
+        return false;
+      };
+
+      let latest = null;
+      for (const k of monthKeys){
+        if (hasValueInMonth(paymentsRows, k) || hasValueInMonth(loanRows, k)){
+          latest = k;
+        }
+      }
+
+      $("lastUpdated").textContent = latest ? latest : "—";
     }
 
     /***********************
@@ -951,7 +1026,8 @@
         });
       }
 
-      // Sort loans by status severity then name
+      // NOTE: keep original severity sort as baseline,
+      // but sorting UI will override render order without changing calculations.
       const severity = (s) => s === "Overdue" ? 0 : s === "On Time" ? 1 : s === "Not Yet Due" ? 2 : s === "Cleared" ? 3 : 4;
       loansComputedRows.sort((a,b) => {
         const sa = severity(a.__rawStatus), sb = severity(b.__rawStatus);
@@ -993,6 +1069,17 @@
       renderLoansTable();
     }
 
+    // NEW: generic compare helpers for sorting
+    function cmpSN(a, b){
+      const na = Number(a.SN), nb = Number(b.SN);
+      const va = isFinite(na) ? na : 0;
+      const vb = isFinite(nb) ? nb : 0;
+      return va - vb;
+    }
+    function cmpName(a, b){
+      return String(a.Name || "").localeCompare(String(b.Name || ""), undefined, { sensitivity: "base" });
+    }
+
     function renderPaymentsTable(){
       const table = $("paymentsTable");
       table.innerHTML = "";
@@ -1023,14 +1110,19 @@
 
       // Totals
       const totals = {};
-      for (const h of headers){
-        totals[h] = 0;
-      }
+      for (const h of headers) totals[h] = 0;
 
-      // rows
-      const sorted = [...paymentsRows].sort((a,b) => String(a.Name).localeCompare(String(b.Name)));
+      // rows (NEW: sorting)
+      const rows = [...paymentsRows];
+      rows.sort((a,b) => {
+        const primary = paySort.key === "SN" ? cmpSN(a,b) : cmpName(a,b);
+        if (primary !== 0) return primary * paySort.dir;
+        // tie-breaker
+        const secondary = paySort.key === "SN" ? cmpName(a,b) : cmpSN(a,b);
+        return secondary;
+      });
 
-      for (const r of sorted){
+      for (const r of rows){
         const tr = document.createElement("tr");
 
         for (const h of headers){
@@ -1117,7 +1209,16 @@
 
       const tbody = document.createElement("tbody");
 
-      for (const r of loansComputedRows){
+      // NEW: sorting without changing loan calculations
+      const rows = [...loansComputedRows];
+      rows.sort((a,b) => {
+        const primary = loanSort.key === "SN" ? cmpSN(a,b) : cmpName(a,b);
+        if (primary !== 0) return primary * loanSort.dir;
+        const secondary = loanSort.key === "SN" ? cmpName(a,b) : cmpSN(a,b);
+        return secondary;
+      });
+
+      for (const r of rows){
         const tr = document.createElement("tr");
         for (const h of headers){
           const td = document.createElement(h === "Name" ? "th" : "td");
@@ -1178,8 +1279,13 @@
 
     function renderMemberCard(name){
       const card = $("memberCard");
+      const snap = $("btnSnapshot");
+
       if (!name){
         card.innerHTML = `<div class="muted">Pick a member to see details.</div>`;
+        snap.style.opacity = ".45";
+        snap.style.pointerEvents = "none";
+        snap.dataset.member = "";
         return;
       }
 
@@ -1252,17 +1358,62 @@
           </div>
         </div>
       `;
+
+      // NEW: enable snapshot button for selected member
+      snap.style.opacity = "1";
+      snap.style.pointerEvents = "auto";
+      snap.dataset.member = name;
+    }
+
+    // NEW: snapshot feature (PC + mobile)
+    function sanitizeFilePart(s){
+      return String(s || "")
+        .trim()
+        .replace(/\s+/g, "_")
+        .replace(/[\/\\:*?"<>|]/g, "")   // illegal filename chars
+        .slice(0, 80);
+    }
+
+    function pad2(n){ return String(n).padStart(2, "0"); }
+
+    async function takeMemberSnapshot(){
+      const name = $("btnSnapshot").dataset.member;
+      if (!name){
+        showToast("Snapshot", "Select a member first.", "warn");
+        return;
+      }
+      const target = $("memberCardWrap");
+
+      try{
+        const canvas = await html2canvas(target, {
+          backgroundColor: null,
+          scale: Math.min(2, window.devicePixelRatio || 1)
+        });
+
+        const d = new Date();
+        // REQUIRED FORMAT: AvadhiNidhi_<MemberName>_<HH-MM-DD-MM-YY>.png
+        const stamp = `${pad2(d.getHours())}-${pad2(d.getMinutes())}-${pad2(d.getDate())}-${pad2(d.getMonth()+1)}-${String(d.getFullYear()).slice(-2)}`;
+        const filename = `AvadhiNidhi_${sanitizeFilePart(name)}_${stamp}.png`;
+
+        const link = document.createElement("a");
+        link.href = canvas.toDataURL("image/png");
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        showToast("Snapshot saved", filename, "good");
+      }catch(err){
+        console.error(err);
+        showToast("Snapshot failed", "Could not generate snapshot on this device/browser.", "bad");
+      }
     }
 
     /***********************
      * ADMIN (OBFUSCATED PASSWORD GATE)
      ***********************/
     function obfMinutePass(){
-      // Password target: DDMMYYHHMM (local time), but obfuscated:
-      // - split pieces
-      // - reverse segment
-      // - decoy ops
-      // - reassemble
+      // Password target: DDMMYYHHMM (local time), but obfuscated
       const d = new Date();
       const pad = (n) => String(n).padStart(2,"0");
 
@@ -1272,34 +1423,28 @@
       const hh = pad(d.getHours());
       const mi = pad(d.getMinutes());
 
-      // decoy arrays & ops
       const junk = ["x","7","k","Q","0","m","9","z"];
       const spin = (s) => s.split("").reverse().join("");
       const t1 = dd + mm;
       const t2 = yy + hh;
       const t3 = mi;
 
-      // pretend mixing
-      const a = spin(t2);      // hhyy reversed
-      const b = spin(t1);      // mmdd reversed
-      const c = t3;            // minutes
+      const a = spin(t2);
+      const b = spin(t1);
+      const c = t3;
       const noise = junk[(d.getSeconds() % junk.length)];
 
-      // reconstruct back to DDMMYYHHMM without plainly writing it
-      // b is mmdd, so spin(b) => ddmm ; a is hhyy, spin(a)=> yyhh
       const ddmm = spin(b);
       const yyhh = spin(a);
-      const out = (ddmm + yyhh + c).replace(noise, ""); // noise is not present; decoy line
+      const out = (ddmm + yyhh + c).replace(noise, "");
 
       return out; // DDMMYYHHMM
     }
 
     function verifyAdmin(pass){
       const p = (pass||"").trim();
-      // Obfuscated comparison
       const real = obfMinutePass();
       const mix = (s) => (s.split("").map((ch,i)=> String.fromCharCode(ch.charCodeAt(0) ^ (i%3))).join(""));
-      // Compare after symmetric transform (harder to eyeball)
       return mix(p) === mix(real);
     }
 
@@ -1320,7 +1465,6 @@
     }
 
     function ensureMonthColumn(rows, key){
-      // Make sure key exists for every row (for CSV export consistency)
       if (!isMonthKey(key)) return;
       for (const r of rows){
         if (!(key in r)) r[key] = "";
@@ -1348,14 +1492,12 @@
       }
 
       if (type === "payment"){
-        // Update payments.csv month value
         let row = getMemberRowPayments(name);
         if (!row){
           showToast("Admin", "Member not found in payments.csv.", "bad");
           return;
         }
 
-        // Ensure month column exists everywhere
         ensureMonthColumn(paymentsRows, mkey);
         if (!paymentsMonthKeys.includes(mkey)) {
           paymentsMonthKeys = sortMonthKeys([...paymentsMonthKeys, mkey]);
@@ -1364,7 +1506,7 @@
 
         row[mkey] = amt ? String(amt) : "";
 
-        // Recompute Total Paid column to keep it consistent in exported CSV
+        // keep Total Paid consistent
         const ob = safeNum(row.OB);
         const totalMonths = sumMonths(row, paymentsMonthKeys, null);
         row["Total Paid"] = (ob + totalMonths).toFixed(2);
@@ -1374,10 +1516,8 @@
       }
 
       if (type === "loanrepay"){
-        // Update Loan.csv month value (repayment entry)
         let row = getMemberRowLoans(name);
         if (!row){
-          // Create a placeholder row if missing
           const nextSN = computeNextSN(loanRows);
           row = {
             SN: String(nextSN),
@@ -1401,11 +1541,11 @@
         showToast("Applied", `${name} • Loan repayment • ${mkey} = ${amt}`, "good");
       }
 
-      // Refresh everything after a change
       determineActiveMonth();
       computeAll();
       renderAll();
       populateMemberSelects();
+      updateLastDataUpdateLabel();
 
       updateAdminPreview();
     }
@@ -1420,11 +1560,12 @@
     }
 
     function discardAdminChanges(){
-      // simplest: reload from disk
       setUnsaved(false);
       $("adminAmount").value = "";
       $("adminNote").value = "";
       showToast("Discarded", "Changes discarded by reloading CSV files.", "warn");
+      // NEW: also refresh cacheBuster to force fetch latest
+      cacheBuster = Date.now();
       loadAll();
     }
 
@@ -1434,11 +1575,9 @@
         return;
       }
 
-      // Ensure month columns exist across rows (stable export)
       for (const k of paymentsMonthKeys) ensureMonthColumn(paymentsRows, k);
       for (const k of loansMonthKeys) ensureMonthColumn(loanRows, k);
 
-      // Export payments: keep base columns first, then months
       const paymentsBase = ["SN","Name","Total Paid","OB"];
       const paymentsHeaders = [...paymentsBase, ...paymentsMonthKeys];
       const paymentsOut = paymentsRows
@@ -1446,7 +1585,6 @@
         .sort((a,b) => String(a.Name).localeCompare(String(b.Name)))
         .map(r => pickColumns(r, paymentsHeaders));
 
-      // Export loans: keep schema columns first, then months
       const loansBase = ["SN","Name","LOAN ISSUE DATE","LOAN AMOUNT","AGREED TO REPAY IN (MONTHS)"];
       const loansHeaders = [...loansBase, ...loansMonthKeys];
       const loansOut = loanRows
@@ -1454,11 +1592,9 @@
         .sort((a,b) => String(a.Name).localeCompare(String(b.Name)))
         .map(r => pickColumns(r, loansHeaders));
 
-      // Build CSV strings
       const paymentsCsv = Papa.unparse(paymentsOut, { columns: paymentsHeaders });
       const loansCsv = Papa.unparse(loansOut, { columns: loansHeaders });
 
-      // Download
       downloadTextFile(paymentsCsv, "payments.csv");
       downloadTextFile(loansCsv, "Loan.csv");
 
@@ -1505,7 +1641,8 @@
      * EVENTS
      ***********************/
     document.addEventListener("DOMContentLoaded", () => {
-      $("btnReload").onclick = () => loadAll();
+      // Reload CSV: NEW cache-buster to force newest data (Chrome cache fix)
+      $("btnReload").onclick = () => { cacheBuster = Date.now(); loadAll(); };
 
       $("btnToggleLoans").onclick = () => {
         const wrap = $("loansWrap");
@@ -1513,6 +1650,47 @@
         wrap.style.display = isOpen ? "none" : "block";
         $("btnToggleLoans").textContent = isOpen ? "Show Loans" : "Hide Loans";
       };
+
+      // NEW: snapshot button
+      $("btnSnapshot").onclick = takeMemberSnapshot;
+
+      // NEW: sorting buttons
+      const updateSortButtons = () => {
+        // Payments
+        $("paySortSN").textContent = `SN ${paySort.key==="SN" ? (paySort.dir===1 ? "▲" : "▼") : ""}`.trim();
+        $("paySortName").textContent = `Name ${paySort.key==="Name" ? (paySort.dir===1 ? "▲" : "▼") : ""}`.trim();
+        // Loans
+        $("loanSortSN").textContent = `SN ${loanSort.key==="SN" ? (loanSort.dir===1 ? "▲" : "▼") : ""}`.trim();
+        $("loanSortName").textContent = `Name ${loanSort.key==="Name" ? (loanSort.dir===1 ? "▲" : "▼") : ""}`.trim();
+      };
+
+      $("paySortSN").onclick = () => {
+        if (paySort.key === "SN") paySort.dir *= -1;
+        else { paySort.key = "SN"; paySort.dir = 1; }
+        renderPaymentsTable();
+        updateSortButtons();
+      };
+      $("paySortName").onclick = () => {
+        if (paySort.key === "Name") paySort.dir *= -1;
+        else { paySort.key = "Name"; paySort.dir = 1; }
+        renderPaymentsTable();
+        updateSortButtons();
+      };
+
+      $("loanSortSN").onclick = () => {
+        if (loanSort.key === "SN") loanSort.dir *= -1;
+        else { loanSort.key = "SN"; loanSort.dir = 1; }
+        renderLoansTable();
+        updateSortButtons();
+      };
+      $("loanSortName").onclick = () => {
+        if (loanSort.key === "Name") loanSort.dir *= -1;
+        else { loanSort.key = "Name"; loanSort.dir = 1; }
+        renderLoansTable();
+        updateSortButtons();
+      };
+
+      updateSortButtons();
 
       // Admin open
       const loginModal = new bootstrap.Modal(document.getElementById("adminLoginModal"));
@@ -1546,7 +1724,7 @@
       $("btnDownloadCsv").onclick = downloadCSVs;
       $("btnDiscardChanges").onclick = discardAdminChanges;
 
-      // Initial load
+      // Initial load (cache-busted)
       loadAll();
     });
   </script>
