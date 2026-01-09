@@ -887,7 +887,11 @@ function completedMonthsBetween(fromDate, toDate){
      * COMPUTATIONS
      ***********************/
     function computeAll(){
+
       const members = paymentsRows.length;
+let paidTill = 0;
+let outTill = 0;
+
 	// FUND-LEVEL expected till date (correct logic)
 const firstMonthKey = paymentsMonthKeys[0] || null;
 
@@ -924,14 +928,10 @@ let expectedTill =
         const paidMonthsSumAll = sumMonths(r, paymentsMonthKeys, null); // sum all payment month columns
         const calcTotalPaid = ob + paidMonthsSumAll;
 
-        // Expected till date includes OB
-        const expTill = (monthsTillCount * MONTHLY_CONTRIBUTION) + ob;
-        const paidTillMember = ob + paidMonthsSumTill;
-        const outTillMember = expTill - paidTillMember;
-
-        
+        const paidTillMember = ob + paidMonthsSumTill;        
         paidTill += paidTillMember;
-        outTill += outTillMember;
+
+
 
         // Compare CSV Total Paid vs computed (optional check)
         const csvTotalPaid = safeNum(r["Total Paid"]);
@@ -939,9 +939,10 @@ let expectedTill =
           mismatches.push({ Name: name, csv: csvTotalPaid, calc: calcTotalPaid });
         }
 
+
         return { ...r, "__calcTotalPaid": calcTotalPaid };
       });
-
+outTill = expectedTill - paidTill;
       // Loans computed
       const loansAgg = computeLoans();
 
