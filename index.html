@@ -660,6 +660,36 @@
       const diff = (toDate.getFullYear() - fromDate.getFullYear()) * 12 + (toDate.getMonth() - fromDate.getMonth());
       return Math.max(0, diff);
     }
+// NEW: loan-specific helpers (grace-period aware)
+
+// Adds months while preserving day-of-month as much as possible
+function addMonthsSameDay(dateObj, monthsToAdd){
+  if (!(dateObj instanceof Date) || isNaN(dateObj)) return null;
+  const d = new Date(dateObj.getTime());
+  d.setMonth(d.getMonth() + monthsToAdd);
+  return d;
+}
+
+// Counts FULL completed months between two dates (day-accurate)
+// Example:
+// from 28-Nov-2025 to 09-Jan-2026 => 1 (only Nov→Dec completed)
+function completedMonthsBetween(fromDate, toDate){
+  if (!(fromDate instanceof Date) || isNaN(fromDate)) return 0;
+  if (!(toDate instanceof Date) || isNaN(toDate)) return 0;
+  if (toDate < fromDate) return 0;
+
+  let months =
+    (toDate.getFullYear() - fromDate.getFullYear()) * 12 +
+    (toDate.getMonth() - fromDate.getMonth());
+
+  // If day-of-month not yet reached, last month not completed
+  if (toDate.getDate() < fromDate.getDate()) {
+    months -= 1;
+  }
+
+  return Math.max(0, months);
+}
+
 
     function parseDateDDMMYY(dateStr){
       // "27-05-25" or "27-05-2025"
@@ -975,33 +1005,55 @@
         emi = Number(emi.toFixed(2));
 
         let monthsPassed = 0;
-        if (hasLoan && loanDate && activeMonthDate){
-          monthsPassed = monthsBetween(new Date(loanDate.getFullYear(), loanDate.getMonth(), 1), activeMonthDate);
-        }
+let expectedTill = 0;
 
-        const expectedTill = hasLoan ? Number((monthsPassed * emi).toFixed(2)) : 0;
-        const overdueAmt = hasLoan ? Math.max(0, Number((expectedTill - repaid).toFixed(2))) : 0;
+if (hasLoan && loanDate){
+  // 2-month grace period
+  const graceEndDate = addMonthsSameDay(loanDate, 2);
+
+  // Use real "today", not month-only logic
+  const today = new Date();
+
+  // Count FULL completed EMI months after grace
+  monthsPassed = completedMonthsBetween(graceEndDate, today);
+
+  // Expected till date = EMI × monthsPassed, capped to loan amount
+  expectedTill = Math.min(
+    Number((monthsPassed * emi).toFixed(2)),
+    loanAmt
+  );
+}
+
+const overdueAmt = hasLoan
+  ? Math.max(0, Number((expectedTill - repaid).toFixed(2)))
+  : 0;
+
 
         let status = "No Loan";
-        let badge = "badge-soft";
-        if (hasLoan){
-          if (repaid >= loanAmt - 0.009){
-            status = "Cleared";
-            badge = "badge-soft good";
-          } else if (monthsPassed === 0){
-            status = "Not Yet Due";
-            badge = "badge-soft";
-          } else if (repaid >= expectedTill - 0.009){
-            status = "On Time";
-            badge = "badge-soft good";
-          } else if (repaid > 0){
-            status = "Overdue";
-            badge = "badge-soft bad";
-          } else {
-            status = "Overdue";
-            badge = "badge-soft bad";
-          }
-        }
+let badge = "badge-soft";
+
+if (hasLoan){
+  const graceEndDate = loanDate ? addMonthsSameDay(loanDate, 2) : null;
+  const today = new Date();
+
+  if (repaid >= loanAmt - 0.009){
+    status = "Cleared";
+    badge = "badge-soft good";
+  }
+  else if (graceEndDate && today < graceEndDate){
+    status = "Not Yet Due";
+    badge = "badge-soft";
+  }
+  else if (repaid >= expectedTill - 0.009){
+    status = "On Time";
+    badge = "badge-soft good";
+  }
+  else{
+    status = "Overdue";
+    badge = "badge-soft bad";
+  }
+}
+
 
         if (hasLoan){
           totalLoanProvided += loanAmt;
@@ -1013,13 +1065,13 @@
           SN: r.SN,
           Name: name,
           "Loan Date": hasLoan ? (r["LOAN ISSUE DATE"] || "") : "",
-          "Loan Amount": hasLoan ? loanAmt : "",
+          "Loan Amount": hasLoan ? Number(loanAmt.toFixed(2)) : "",
           "Months": hasLoan ? months : "",
-          "EMI": hasLoan ? emi : "",
-          "Repaid": hasLoan ? repaid : "",
-          "Expected Till Date": hasLoan ? expectedTill : "",
-          "Overdue Amount": hasLoan ? overdueAmt : "",
-          "Balance": hasLoan ? balance : "",
+          "EMI": hasLoan ? Number(emi.toFixed(2)) : "",
+          "Repaid": hasLoan ? Number(repaid.toFixed(2)) : "",
+		"Expected Till Date": hasLoan ? Number(expectedTill.toFixed(2)) : "",
+		"Overdue Amount": hasLoan ? Number(overdueAmt.toFixed(2)) : "",
+		"Balance": hasLoan ? Number(balance.toFixed(2)) : "",
           "Status": `<span class="${badge}"><span class="dot ${badge.includes("good")?"good":badge.includes("bad")?"bad":"warn"}"></span>${status}</span>`,
           "__rawStatus": status,
           "__row": r
