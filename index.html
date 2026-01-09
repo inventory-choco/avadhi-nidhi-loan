@@ -888,6 +888,19 @@ function completedMonthsBetween(fromDate, toDate){
      ***********************/
     function computeAll(){
       const members = paymentsRows.length;
+	// FUND-LEVEL expected till date (correct logic)
+const firstMonthKey = paymentsMonthKeys[0] || null;
+
+const totalMonthsTill =
+  firstMonthKey && activeMonthKey
+    ? countMonthsTill(activeMonthKey, paymentsMonthKeys)
+    : 0;
+
+// Business rule:
+// Expected = (Members × Months × 100) + (Members × OB 400)
+let expectedTill =
+  (members * totalMonthsTill * MONTHLY_CONTRIBUTION) +
+  (members * 400);
 
       // Expected this month
       const expectedMonth = members * MONTHLY_CONTRIBUTION;
@@ -899,12 +912,7 @@ function completedMonthsBetween(fromDate, toDate){
       }
       const outMonth = expectedMonth - paidMonth;
 
-      // Expected till date includes OB
-      const monthsTillCount = countMonthsTill(activeMonthKey, paymentsMonthKeys); // number of payment-month columns <= active
-      let expectedTill = 0;
-      let paidTill = 0;
-      let outTill = 0;
-
+      
       // Also detect mismatches in CSV Total Paid (informational)
       const mismatches = [];
 
@@ -921,7 +929,7 @@ function completedMonthsBetween(fromDate, toDate){
         const paidTillMember = ob + paidMonthsSumTill;
         const outTillMember = expTill - paidTillMember;
 
-        expectedTill += expTill;
+        
         paidTill += paidTillMember;
         outTill += outTillMember;
 
